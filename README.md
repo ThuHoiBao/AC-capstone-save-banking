@@ -31,6 +31,7 @@ Project Type: Educational Capstone & Production-Ready Implementation
 - [Contributing](#-contributing)
 - [License](#-license)
 - [Acknowledgments](#-acknowledgments)
+- [Contact](#-contact)
 
 ## 🌐 Overview
 Traditional bank saving (term deposit) on-chain: users lock a stablecoin, receive an ERC721 certificate, and earn simple-interest APR funded from a separated vault. Admins configure saving plans, fund/withdraw the vault, and manage penalty/fee policies. The project targets testnet/mainnet readiness and is an educational capstone for interest math, renewals, and secure vault separation.
@@ -187,3 +188,8 @@ docs/           Plan.md, REQUIREMENTS.md
 - OpenZeppelin for ERC20/721/Pausable.
 - Hardhat and Chai for tooling.
 - Community references for term-deposit patterns.
+
+## 📬 Contact
+[![Gmail](https://img.shields.io/badge/Gmail-trananhthu270904%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:trananhthu270904@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-ThuHoiBao-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ThuHoiBao)
+
