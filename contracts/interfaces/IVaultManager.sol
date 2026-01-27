@@ -6,8 +6,6 @@ interface IVaultManager {
     event VaultFunded(uint256 amount, uint256 newBalance);
     event VaultWithdrawn(uint256 amount, uint256 newBalance);
     event FeeReceiverUpdated(address indexed newReceiver);
-    event Paused(address indexed by);
-    event Unpaused(address indexed by);
 
     // Admin Ops
     function fundVault(uint256 amount) external;

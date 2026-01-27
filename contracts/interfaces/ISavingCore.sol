@@ -48,7 +48,6 @@ interface ISavingCore {
 
     function updatePlan(
         uint256 planId,
-        uint32 tenorDays,
         uint16 aprBps,
         uint256 minDeposit,
         uint256 maxDeposit,

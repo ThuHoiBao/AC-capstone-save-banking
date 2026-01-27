@@ -17,16 +17,16 @@
   - ✅ Ghi chú: chưa implement logic SavingCore/VaultManager, sẽ làm ngày 4.
   
 - **Thứ 3:** 
-  - Implement `SavingCore` core logic: `createPlan()`, `updatePlan()`, `openDeposit()` (ERC20 transfer, snapshot APR/penalty, mint ERC721).
-  - Scaffold `VaultManager`: `fundVault()`, `setFeeReceiver()`, `pause/unpause`; restrict interest/penalty payouts to calls from `SavingCore`.
-  - Wire SavingCore ↔ VaultManager + add configurable `gracePeriod`.
-  - Unit tests: `testCreatePlan`, `testOpenDeposit`, constraints (enabled/min/max), event checks.
+  - ✅ Implement `SavingCore` core logic: `createPlan()`, `updatePlan()`, `openDeposit()` (ERC20 transfer, snapshot APR/penalty, mint ERC721).
+  - ✅ Scaffold `VaultManager`: `fundVault()`, `setFeeReceiver()`, `pause/unpause`; restrict interest/penalty payouts to calls from `SavingCore`.
+  - ✅ Wire SavingCore ↔ VaultManager + add configurable `gracePeriod`.
+  - ✅ Unit tests: `testCreatePlan`, `testOpenDeposit`, constraints (enabled/min/max), event checks.
 
 - **Thứ 4:**
-  - Implement withdrawals: `withdrawAtMaturity()` (principal + interest by snapshot APR), `earlyWithdraw()` (principal - penalty, send fee via VaultManager).
-  - Implement renewals: `renewDeposit()` (manual) and `autoRenewDeposit()` (auto after 3-day grace, keep original APR).
-  - Integrate payouts via `VaultManager`: `payoutInterest()`, `distributePenalty()`.
-  - Unit tests: withdraw, early, renew, auto-renew, vault ops, pause.
+  - ✅ Implement withdrawals: `withdrawAtMaturity()` (principal + interest by snapshot APR), `earlyWithdraw()` (principal - penalty, send fee via VaultManager).
+  - ✅ Implement renewals: `renewDeposit()` (manual) and `autoRenewDeposit()` (auto after 3-day grace, keep original APR).
+  - ✅ Integrate payouts via `VaultManager`: `payoutInterest()`, `distributePenalty()`.
+  - ✅ Unit tests: withdraw, early, renew, auto-renew, vault ops, pause.
 - **Thứ 5:**
   - Edge-case coverage: no funds in vault, exceed max, zero amount, time/grace windows, APR change.
   - Deploy script `deploy.ts`: deploy `MockUSDC`, `VaultManager`, `SavingCore`, seed plans, fund vault.

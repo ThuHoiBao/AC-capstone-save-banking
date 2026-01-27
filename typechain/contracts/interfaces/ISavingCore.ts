@@ -163,7 +163,6 @@ export interface ISavingCoreInterface extends Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
-      BigNumberish,
       boolean
     ]
   ): string;
@@ -439,7 +438,6 @@ export interface ISavingCore extends BaseContract {
   updatePlan: TypedContractMethod<
     [
       planId: BigNumberish,
-      tenorDays: BigNumberish,
       aprBps: BigNumberish,
       minDeposit: BigNumberish,
       maxDeposit: BigNumberish,
@@ -524,7 +522,6 @@ export interface ISavingCore extends BaseContract {
   ): TypedContractMethod<
     [
       planId: BigNumberish,
-      tenorDays: BigNumberish,
       aprBps: BigNumberish,
       minDeposit: BigNumberish,
       maxDeposit: BigNumberish,

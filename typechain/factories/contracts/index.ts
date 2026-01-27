@@ -3,3 +3,5 @@
 /* eslint-disable */
 export * as interfaces from "./interfaces";
 export * as tokens from "./tokens";
+export { SavingCore__factory } from "./SavingCore__factory";
+export { VaultManager__factory } from "./VaultManager__factory";

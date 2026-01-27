@@ -42,8 +42,6 @@ export interface IVaultManagerInterface extends Interface {
   getEvent(
     nameOrSignatureOrTopic:
       | "FeeReceiverUpdated"
-      | "Paused"
-      | "Unpaused"
       | "VaultFunded"
       | "VaultWithdrawn"
   ): EventFragment;
@@ -117,30 +115,6 @@ export namespace FeeReceiverUpdatedEvent {
   export type OutputTuple = [newReceiver: string];
   export interface OutputObject {
     newReceiver: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace PausedEvent {
-  export type InputTuple = [by: AddressLike];
-  export type OutputTuple = [by: string];
-  export interface OutputObject {
-    by: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace UnpausedEvent {
-  export type InputTuple = [by: AddressLike];
-  export type OutputTuple = [by: string];
-  export interface OutputObject {
-    by: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -305,20 +279,6 @@ export interface IVaultManager extends BaseContract {
     FeeReceiverUpdatedEvent.OutputObject
   >;
   getEvent(
-    key: "Paused"
-  ): TypedContractEvent<
-    PausedEvent.InputTuple,
-    PausedEvent.OutputTuple,
-    PausedEvent.OutputObject
-  >;
-  getEvent(
-    key: "Unpaused"
-  ): TypedContractEvent<
-    UnpausedEvent.InputTuple,
-    UnpausedEvent.OutputTuple,
-    UnpausedEvent.OutputObject
-  >;
-  getEvent(
     key: "VaultFunded"
   ): TypedContractEvent<
     VaultFundedEvent.InputTuple,
@@ -343,28 +303,6 @@ export interface IVaultManager extends BaseContract {
       FeeReceiverUpdatedEvent.InputTuple,
       FeeReceiverUpdatedEvent.OutputTuple,
       FeeReceiverUpdatedEvent.OutputObject
-    >;
-
-    "Paused(address)": TypedContractEvent<
-      PausedEvent.InputTuple,
-      PausedEvent.OutputTuple,
-      PausedEvent.OutputObject
-    >;
-    Paused: TypedContractEvent<
-      PausedEvent.InputTuple,
-      PausedEvent.OutputTuple,
-      PausedEvent.OutputObject
-    >;
-
-    "Unpaused(address)": TypedContractEvent<
-      UnpausedEvent.InputTuple,
-      UnpausedEvent.OutputTuple,
-      UnpausedEvent.OutputObject
-    >;
-    Unpaused: TypedContractEvent<
-      UnpausedEvent.InputTuple,
-      UnpausedEvent.OutputTuple,
-      UnpausedEvent.OutputObject
     >;
 
     "VaultFunded(uint256,uint256)": TypedContractEvent<

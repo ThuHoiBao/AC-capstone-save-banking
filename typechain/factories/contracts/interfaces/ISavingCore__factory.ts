@@ -485,11 +485,6 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "uint32",
-        name: "tenorDays",
-        type: "uint32",
-      },
-      {
         internalType: "uint16",
         name: "aprBps",
         type: "uint16",
