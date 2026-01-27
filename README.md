@@ -1,4 +1,4 @@
-AC Capstone - On-Chain Term Deposit (Upgradeable Saving DApp)
+## AC Capstone - On-Chain Term Deposit (Upgradeable Saving DApp)
 
 [![Built with Hardhat](https://img.shields.io/badge/Built%20with-Hardhat-f7e018?style=for-the-badge&logo=ethereum)](https://hardhat.org)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.28-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://docs.soliditylang.org)
