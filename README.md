@@ -167,8 +167,8 @@ docs/           Plan.md, REQUIREMENTS.md
 - Key hygiene: keep secrets in .env; prefer hardware wallets for production.
 
 ## 📚 Documentation
-- Product plan: [Plan.md](Plan.md)
-- Functional requirements: [REQUIREMENTS.md](REQUIREMENTS.md)
+- Product plan: [Plan.md](documents/Plan.md)
+- Functional requirements: [REQUIREMENTS.md](documents/REQUIREMENTS.md)
 
 ## 🗓️ Roadmap
 - Contracts: finish SavingCore/VaultManager logic, then full test matrix.
