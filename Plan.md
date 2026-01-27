@@ -9,13 +9,13 @@
 
 ## Lịch làm việc chi tiết
 - **Thứ 2 :** 
-  - Chuẩn hoá yêu cầu, setup project, mock token.
-  - Thiết kế data struct: Plan (tenorDays, aprBps, minDeposit, maxDeposit, earlyWithdrawPenaltyBps, enabled), Deposit (owner, planId, principal, startAt, maturityAt, status, aprBpsAtOpen, penaltyBpsAtOpen).
-  - Tạo thư mục chuẩn: `contracts/interfaces`, `contracts/libs`, `contracts/types`, `contracts/tokens`.
-  - Viết `Types.sol` (structs + enum), `InterestMath.sol` (simple interest), `ISavingCore.sol`, `IVaultManager.sol` (hàm + events).
-  - Chạy `npx hardhat compile` và `npx hardhat test` xác nhận cấu trúc OK.
-  - Ghi chú: chưa implement logic SavingCore/VaultManager, sẽ làm ngày 4.
-  ✅ DONE
+  - ✅ Chuẩn hoá yêu cầu, setup project, mock token.
+  - ✅ DONEThiết kế data struct: Plan (tenorDays, aprBps, minDeposit, maxDeposit, earlyWithdrawPenaltyBps, enabled), Deposit (owner, planId, principal, startAt, maturityAt, status, aprBpsAtOpen, penaltyBpsAtOpen).
+  - ✅ Tạo thư mục chuẩn: `contracts/interfaces`, `contracts/libs`, `contracts/types`, `contracts/tokens`.
+  - ✅ Viết `Types.sol` (structs + enum), `InterestMath.sol` (simple interest), `ISavingCore.sol`, `IVaultManager.sol` (hàm + events).
+  - ✅ Chạy `npx hardhat compile` và `npx hardhat test` xác nhận cấu trúc OK.
+  - ✅ Ghi chú: chưa implement logic SavingCore/VaultManager, sẽ làm ngày 4.
+  
 - **Thứ 3:** 
   - Implement `SavingCore` core logic: `createPlan()`, `updatePlan()`, `openDeposit()` (ERC20 transfer, snapshot APR/penalty, mint ERC721).
   - Scaffold `VaultManager`: `fundVault()`, `setFeeReceiver()`, `pause/unpause`; restrict interest/penalty payouts to calls from `SavingCore`.
