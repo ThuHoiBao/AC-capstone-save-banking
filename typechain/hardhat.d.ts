@@ -53,10 +53,6 @@ declare module "hardhat/types/runtime" {
       name: "MockUSDC",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockUSDC__factory>;
-    getContractFactory(
-      name: "MockUSDC",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.MockUSDC__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -108,11 +104,6 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.MockUSDC>;
-    getContractAt(
-      name: "MockUSDC",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.MockUSDC>;
 
     deployContract(
       name: "Ownable",
@@ -150,10 +141,6 @@ declare module "hardhat/types/runtime" {
       name: "IVaultManager",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IVaultManager>;
-    deployContract(
-      name: "MockUSDC",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.MockUSDC>;
     deployContract(
       name: "MockUSDC",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -204,11 +191,6 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IVaultManager>;
-    deployContract(
-      name: "MockUSDC",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.MockUSDC>;
     deployContract(
       name: "MockUSDC",
       args: any[],

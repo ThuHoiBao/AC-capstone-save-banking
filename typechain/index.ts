@@ -24,5 +24,5 @@ export type { ISavingCore } from "./contracts/interfaces/ISavingCore";
 export { ISavingCore__factory } from "./factories/contracts/interfaces/ISavingCore__factory";
 export type { IVaultManager } from "./contracts/interfaces/IVaultManager";
 export { IVaultManager__factory } from "./factories/contracts/interfaces/IVaultManager__factory";
-export type { MockUSDC } from "./contracts/MockUSDC";
-export { MockUSDC__factory } from "./factories/contracts/MockUSDC__factory";
+export type { MockUSDC } from "./contracts/tokens/MockUSDC";
+export { MockUSDC__factory } from "./factories/contracts/tokens/MockUSDC__factory";

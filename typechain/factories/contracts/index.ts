@@ -3,4 +3,3 @@
 /* eslint-disable */
 export * as interfaces from "./interfaces";
 export * as tokens from "./tokens";
-export { MockUSDC__factory } from "./MockUSDC__factory";
