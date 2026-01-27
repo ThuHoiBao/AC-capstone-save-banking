@@ -5,7 +5,8 @@ AC Capstone - On-Chain Term Deposit (Upgradeable Saving DApp)
 [![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-Contracts-4b7bec?style=for-the-badge)](https://docs.openzeppelin.com/contracts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-Author: Huy Pham   Project Type: Educational Capstone & Production-Ready Implementation
+Author: Tran Anh Thu   
+Project Type: Educational Capstone & Production-Ready Implementation
 
 Table of Contents
 - [Overview](#overview)
