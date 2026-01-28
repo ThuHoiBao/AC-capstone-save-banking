@@ -52,12 +52,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Admin creates a new saving plan
-    /// @param tenorDays Tenor in days (e.g., 90 for 3 months)
-    /// @param aprBps Annual percentage rate in basis points (e.g., 250 = 2.5%)
-    /// @param minDeposit Minimum deposit amount in wei (0 = no limit)
-    /// @param maxDeposit Maximum deposit amount in wei (0 = no limit)
-    /// @param earlyWithdrawPenaltyBps Penalty for early withdrawal in bps (e.g., 500 = 5%)
-    /// @return planId The newly created plan ID
     function createPlan(
         uint32 tenorDays,
         uint16 aprBps,
@@ -85,12 +79,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Admin updates an existing plan (does not affect existing deposits)
-    /// @param planId The plan ID to update
-    /// @param aprBps New APR in basis points
-    /// @param minDeposit New minimum deposit
-    /// @param maxDeposit New maximum deposit
-    /// @param earlyWithdrawPenaltyBps New penalty rate
-    /// @param enabled Whether plan is enabled for new deposits
     function updatePlan(
         uint256 planId,
         uint16 aprBps,
@@ -121,9 +109,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice User opens a term deposit and receives an NFT certificate
-    /// @param planId The plan to deposit into
-    /// @param amount The amount of tokens to deposit (in wei)
-    /// @return depositId The NFT token ID representing this deposit
     function openDeposit(uint256 planId, uint256 amount)
         external
         returns (uint256 depositId)
@@ -181,28 +166,22 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Set the grace period for auto-renewal
-    /// @param newGracePeriod Grace period in seconds
     function setGracePeriod(uint256 newGracePeriod) external onlyOwner {
         gracePeriod = newGracePeriod;
     }
 
     /// @notice Update the vault manager address
-    /// @param newVaultManager New vault manager contract address
     function setVaultManager(address newVaultManager) external onlyOwner {
         require(newVaultManager != address(0), "Invalid vault address");
         vaultManager = IVaultManager(newVaultManager);
     }
 
     /// @notice Get plan details
-    /// @param planId The plan ID
-    /// @return plan The plan struct
     function getPlan(uint256 planId) external view returns (Types.Plan memory) {
         return plans[planId];
     }
 
     /// @notice Get deposit details
-    /// @param depositId The deposit ID
-    /// @return deposit The deposit struct
     function getDeposit(uint256 depositId)
         external
         view
@@ -212,9 +191,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Withdraw at maturity - receives principal + interest
-    /// @param depositId The deposit ID (NFT token ID)
-    /// @return principal The principal amount
-    /// @return interest The interest earned
     function withdrawAtMaturity(uint256 depositId) external returns (uint256 principal, uint256 interest) {
         Types.Deposit storage deposit = deposits[depositId];
         
@@ -247,9 +223,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Early withdraw - receives principal minus penalty, no interest
-    /// @param depositId The deposit ID (NFT token ID)
-    /// @return principalAfterPenalty Amount user receives
-    /// @return penalty Penalty amount sent to fee receiver
     function earlyWithdraw(uint256 depositId) external returns (uint256 principalAfterPenalty, uint256 penalty) {
         Types.Deposit storage deposit = deposits[depositId];
         
@@ -277,9 +250,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Manual renewal - renew to a new plan with interest compounded
-    /// @param depositId The deposit ID to renew
-    /// @param newPlanId The plan to renew into
-    /// @return newDepositId The new deposit ID (new NFT)
     function renewDeposit(uint256 depositId, uint256 newPlanId) external returns (uint256 newDepositId) {
         Types.Deposit storage oldDeposit = deposits[depositId];
         
@@ -343,8 +313,6 @@ contract SavingCore is ERC721, Ownable, ISavingCore {
     }
 
     /// @notice Auto renewal - triggered after grace period, uses same plan with original APR
-    /// @param depositId The deposit ID to auto-renew
-    /// @return newDepositId The new deposit ID (new NFT)
     function autoRenewDeposit(uint256 depositId) external returns (uint256 newDepositId) {
         Types.Deposit storage oldDeposit = deposits[depositId];
         

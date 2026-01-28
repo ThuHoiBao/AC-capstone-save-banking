@@ -8,8 +8,6 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {IVaultManager} from "./interfaces/IVaultManager.sol";
 
 /// @title VaultManager
-/// @notice Manages liquidity vault for interest payouts and penalty collection
-/// @dev Separated from SavingCore for better fund management and emergency pause
 contract VaultManager is IVaultManager, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
@@ -41,7 +39,6 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice Admin funds the vault with tokens for interest payouts
-    /// @param amount Amount of tokens to deposit (must approve first)
     function fundVault(uint256 amount) external onlyOwner {
         require(amount > 0, "Amount must be greater than 0");
 
@@ -52,7 +49,6 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice Admin withdraws tokens from vault
-    /// @param amount Amount to withdraw
     function withdrawVault(uint256 amount) external onlyOwner {
         if (amount > totalBalance) revert InsufficientBalance();
 
@@ -63,7 +59,6 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice Admin sets the fee receiver address for penalties
-    /// @param newReceiver New fee receiver address
     function setFeeReceiver(address newReceiver) external onlyOwner {
         if (newReceiver == address(0)) revert InvalidAddress();
         feeReceiver = newReceiver;
@@ -71,7 +66,6 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice Admin sets the SavingCore contract address
-    /// @param _savingCore SavingCore contract address
     function setSavingCore(address _savingCore) external onlyOwner {
         if (_savingCore == address(0)) revert InvalidAddress();
         savingCore = _savingCore;
@@ -93,8 +87,7 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice SavingCore calls to pay interest to user
-    /// @param to Recipient address
-    /// @param amount Interest amount to pay
+
     function payoutInterest(address to, uint256 amount)
         external
         onlySavingCore
@@ -107,7 +100,6 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice SavingCore calls to distribute penalty to feeReceiver
-    /// @param amount Penalty amount
     function distributePenalty(uint256 amount)
         external
         onlySavingCore
@@ -117,7 +109,6 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     }
 
     /// @notice Check if vault is paused
-    /// @return True if paused
     function isPaused() external view returns (bool) {
         return paused();
     }
