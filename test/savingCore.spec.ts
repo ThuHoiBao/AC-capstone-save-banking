@@ -43,7 +43,7 @@ describe("SavingCore - Day 3 Tests", function () {
     await savingCore.waitForDeployment();
 
     // Set SavingCore in VaultManager
-    await vaultManager.setSavingCore(await savingCore.getAddress());
+    await vaultManager.setSavingLogic(await savingCore.getAddress());
 
     // Fund vault with 100,000 USDC
     const fundAmount = 100_000n * ONE_USDC;

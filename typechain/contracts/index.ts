@@ -5,5 +5,7 @@ import type * as interfaces from "./interfaces";
 export type { interfaces };
 import type * as tokens from "./tokens";
 export type { tokens };
+export type { DepositCertificate } from "./DepositCertificate";
 export type { SavingCore } from "./SavingCore";
+export type { SavingLogic } from "./SavingLogic";
 export type { VaultManager } from "./VaultManager";

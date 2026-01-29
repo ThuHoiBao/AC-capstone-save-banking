@@ -1,0 +1,70 @@
+@use '../../../styles/variables.scss' as *;
+
+.debug {
+  position: fixed;
+  bottom: $spacing-4;
+  right: $spacing-4;
+  background: rgba(0, 0, 0, 0.95);
+  color: white;
+  border-radius: 12px;
+  padding: $spacing-4;
+  font-size: $text-sm;
+  font-family: $font-mono;
+  max-width: 500px;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  border: 2px solid $primary-500;
+}
+
+.debugTitle {
+  font-weight: 700;
+  margin-bottom: $spacing-3;
+  color: $primary-400;
+  font-size: $text-base;
+}
+
+.debugContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.debugRow {
+  display: flex;
+  gap: $spacing-3;
+  align-items: flex-start;
+  padding: $spacing-2;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  
+  span {
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 120px;
+  }
+  
+  code {
+    color: $accent-500;
+    word-break: break-all;
+    flex: 1;
+  }
+  
+  strong {
+    color: white;
+    font-weight: 700;
+    
+    &.yes {
+      color: $secondary-500;
+    }
+    
+    &.no {
+      color: $danger-500;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .debug {
+    max-width: calc(100vw - 2rem);
+    font-size: $text-xs;
+  }
+}

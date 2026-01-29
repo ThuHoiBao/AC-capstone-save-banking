@@ -1,0 +1,289 @@
+@use '../../styles/variables.scss' as *;
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $spacing-12 $spacing-6;
+  width: 100%;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-8 $spacing-4;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $spacing-10;
+  
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: $neutral-900;
+    margin-bottom: $spacing-3;
+  }
+}
+
+.subtitle {
+  font-size: $text-lg;
+  color: $neutral-600;
+}
+
+.accessDenied {
+  text-align: center;
+  padding: $spacing-16;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  h2 {
+    font-size: $text-3xl;
+    color: $danger-500;
+    margin-bottom: $spacing-4;
+  }
+  
+  p {
+    font-size: $text-lg;
+    color: $neutral-600;
+    margin-bottom: $spacing-2;
+  }
+}
+
+.adminHint {
+  font-family: $font-mono;
+  font-size: $text-sm !important;
+  color: $neutral-500 !important;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: $spacing-6;
+  margin-bottom: $spacing-10;
+}
+
+.statCard {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(16, 185, 129, 0.05));
+  border: 2px solid $primary-200;
+  border-radius: 16px;
+  padding: $spacing-6;
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.statIcon {
+  font-size: 2.5rem;
+}
+
+.statContent {
+  flex: 1;
+}
+
+.statLabel {
+  font-size: $text-sm;
+  color: $neutral-600;
+  margin-bottom: $spacing-2;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: $text-2xl;
+  font-weight: 800;
+  background: linear-gradient(135deg, $primary-600, $secondary-600);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $spacing-8;
+}
+
+.formCard {
+  background: white;
+  border: 2px solid $primary-200;
+  border-radius: 20px;
+  padding: $spacing-8;
+  margin-bottom: $spacing-10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  
+  h3 {
+    font-size: $text-2xl;
+    font-weight: 700;
+    color: $neutral-900;
+    margin-bottom: $spacing-6;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-6;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-6;
+  
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  
+  label {
+    font-size: $text-base;
+    font-weight: 600;
+    color: $neutral-800;
+  }
+  
+  input {
+    padding: $spacing-4;
+    border: 2px solid $neutral-300;
+    border-radius: 12px;
+    font-size: $text-base;
+    transition: all 0.2s;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-500;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+    
+    &:disabled {
+      background: $neutral-100;
+      cursor: not-allowed;
+    }
+  }
+  
+  small {
+    font-size: $text-sm;
+    color: $neutral-600;
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: $spacing-4;
+  
+  button {
+    flex: 1;
+  }
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid $danger-500;
+  color: $danger-600;
+  padding: $spacing-3;
+  border-radius: 8px;
+  font-size: $text-sm;
+}
+
+.success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid $secondary-600;
+  color: $secondary-700;
+  padding: $spacing-3;
+  border-radius: 8px;
+  font-size: $text-sm;
+}
+
+.plansSection {
+  h2 {
+    font-size: $text-2xl;
+    font-weight: 700;
+    color: $neutral-900;
+    margin-bottom: $spacing-6;
+    text-align: center;
+  }
+}
+
+.plansList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: $spacing-6;
+}
+
+.planCard {
+  background: white;
+  border: 2px solid $primary-200;
+  border-radius: 16px;
+  padding: $spacing-6;
+  transition: all 0.3s;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
+  }
+  
+  &.disabled {
+    opacity: 0.6;
+    border-color: $neutral-300;
+  }
+}
+
+.planHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-5;
+  padding-bottom: $spacing-4;
+  border-bottom: 2px solid $neutral-100;
+  
+  h3 {
+    font-size: $text-xl;
+    font-weight: 700;
+    color: $neutral-900;
+  }
+}
+
+.planStatus {
+  font-size: $text-sm;
+  font-weight: 700;
+  padding: $spacing-2 $spacing-3;
+  border-radius: 20px;
+}
+
+.planBody {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  margin-bottom: $spacing-5;
+}
+
+.planInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: $text-base;
+  
+  span {
+    color: $neutral-600;
+  }
+  
+  strong {
+    color: $neutral-900;
+    font-weight: 700;
+  }
+}
+
+.planActions {
+  display: flex;
+  gap: $spacing-3;
+  
+  button {
+    flex: 1;
+  }
+}

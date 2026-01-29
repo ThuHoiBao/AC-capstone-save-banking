@@ -1,0 +1,216 @@
+@use '../../../styles/variables' as *;
+
+.footer {
+  background: linear-gradient(180deg, $bg-primary 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-top: 2px solid transparent;
+  border-image: $gradient-primary 1;
+  color: $text-muted;
+  padding: $spacing-16 0 $spacing-8;
+  margin-top: auto;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: $gradient-primary;
+  }
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 $spacing-6;
+  
+  @media (max-width: $breakpoint-lg) {
+    padding: 0 $spacing-4;
+  }
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: $spacing-12;
+  margin-bottom: $spacing-12;
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-8;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+    gap: $spacing-8;
+  }
+}
+
+.section {
+  h4 {
+    color: $text-primary;
+    font-size: $text-sm;
+    font-weight: 700;
+    margin-bottom: $spacing-4;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-3;
+
+    li {
+      a {
+        color: $text-muted;
+        text-decoration: none;
+        font-size: $text-sm;
+        transition: $transition-base;
+        display: flex;
+        align-items: center;
+        gap: $spacing-2;
+
+        &:hover {
+          color: $primary-400;
+          transform: translateX(4px);
+        }
+        
+        svg {
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
+}
+
+.brand {
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    margin-bottom: $spacing-4;
+    
+    span {
+      font-size: $text-xl;
+      font-weight: 700;
+      background: $gradient-primary;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+  
+  .logoIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: $rounded-lg;
+    background: $gradient-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: $glow-primary;
+    flex-shrink: 0;
+  }
+  
+  p {
+    color: $text-muted;
+    font-size: $text-sm;
+    line-height: 1.6;
+    max-width: 360px;
+  }
+}
+
+.network {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  
+  p {
+    color: $text-muted;
+    font-size: $text-sm;
+    line-height: 1.6;
+    margin: 0;
+  }
+  
+  .chainId {
+    font-family: $font-mono;
+    font-size: $text-xs;
+    color: $primary-400;
+    background: rgba(14, 165, 233, 0.1);
+    padding: $spacing-2 $spacing-3;
+    border-radius: $rounded-md;
+    display: inline-block;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    font-weight: 600;
+  }
+  
+  .externalLink {
+    color: $primary-400;
+    font-size: $text-sm;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+    margin-top: $spacing-2;
+    transition: $transition-base;
+    font-weight: 600;
+    
+    &:hover {
+      color: $primary-300;
+      gap: $spacing-3;
+    }
+  }
+}
+
+.bottom {
+  padding-top: $spacing-8;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-4;
+
+  p {
+    color: $text-muted;
+    font-size: $text-sm;
+    margin: 0;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.social {
+  display: flex;
+  gap: $spacing-3;
+  
+  a {
+    width: 40px;
+    height: 40px;
+    border-radius: $rounded-full;
+    background: rgba(14, 165, 233, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $primary-400;
+    transition: $transition-base;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    
+    &:hover {
+      background: rgba(14, 165, 233, 0.2);
+      border-color: $primary-400;
+      color: $primary-300;
+      transform: translateY(-3px);
+      box-shadow: $glow-primary;
+    }
+  }
+}

@@ -42,7 +42,7 @@
     },
     {
         "inputs": [],
-        "name": "OnlySavingCore",
+        "name": "OnlySavingLogic",
         "type": "error"
     },
     {
@@ -286,7 +286,7 @@
     },
     {
         "inputs": [],
-        "name": "savingCore",
+        "name": "savingLogic",
         "outputs": [
             {
                 "internalType": "address",
@@ -314,11 +314,11 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_savingCore",
+                "name": "_savingLogic",
                 "type": "address"
             }
         ],
-        "name": "setSavingCore",
+        "name": "setSavingLogic",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

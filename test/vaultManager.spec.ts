@@ -32,7 +32,7 @@ describe("VaultManager - Day 3 Tests", function () {
     await vaultManager.waitForDeployment();
 
     // Set SavingCore address
-    await vaultManager.setSavingCore(savingCore.address);
+    await vaultManager.setSavingLogic(savingCore.address);
   });
 
   describe("fundVault", function () {
@@ -183,10 +183,10 @@ describe("VaultManager - Day 3 Tests", function () {
       expect(await vaultManager.totalBalance()).to.equal(9_900n * ONE_USDC);
     });
 
-    it("Should revert if not called by SavingCore", async function () {
+    it("Should revert if not called by SavingLogic", async function () {
       await expect(
         vaultManager.connect(user).payoutInterest(user.address, 100n * ONE_USDC)
-      ).to.be.revertedWithCustomError(vaultManager, "OnlySavingCore");
+      ).to.be.revertedWithCustomError(vaultManager, "OnlySavingLogic");
     });
 
     it("Should revert if insufficient balance", async function () {
@@ -220,10 +220,10 @@ describe("VaultManager - Day 3 Tests", function () {
       expect(await token.balanceOf(feeReceiver.address)).to.equal(penaltyAmount);
     });
 
-    it("Should revert if not called by SavingCore", async function () {
+    it("Should revert if not called by SavingLogic", async function () {
       await expect(
         vaultManager.connect(user).distributePenalty(50n * ONE_USDC)
-      ).to.be.revertedWithCustomError(vaultManager, "OnlySavingCore");
+      ).to.be.revertedWithCustomError(vaultManager, "OnlySavingLogic");
     });
 
     it("Should revert when paused", async function () {
@@ -235,24 +235,24 @@ describe("VaultManager - Day 3 Tests", function () {
     });
   });
 
-  describe("setSavingCore", function () {
-    it("Should set SavingCore address", async function () {
+  describe("setSavingLogic", function () {
+    it("Should update savingLogic address", async function () {
       const newSavingCore = user.address;
 
-      await vaultManager.setSavingCore(newSavingCore);
+      await vaultManager.setSavingLogic(newSavingCore);
 
-      expect(await vaultManager.savingCore()).to.equal(newSavingCore);
+      expect(await vaultManager.savingLogic()).to.equal(newSavingCore);
     });
 
     it("Should revert if address is zero", async function () {
       await expect(
-        vaultManager.setSavingCore(ethers.ZeroAddress)
+        vaultManager.setSavingLogic(ethers.ZeroAddress)
       ).to.be.revertedWithCustomError(vaultManager, "InvalidAddress");
     });
 
-    it("Should only allow owner to set SavingCore", async function () {
+    it("Should only allow owner to set SavingLogic", async function () {
       await expect(
-        vaultManager.connect(user).setSavingCore(user.address)
+        vaultManager.connect(user).setSavingLogic(user.address)
       ).to.be.revertedWithCustomError(vaultManager, "OwnableUnauthorizedAccount");
     });
   });

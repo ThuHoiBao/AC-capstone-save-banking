@@ -1,0 +1,101 @@
+@use '../../../styles/variables.scss' as *;
+
+.container {
+  position: relative;
+  background: white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  padding: $spacing-3 $spacing-4;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.balance {
+  display: flex;
+  gap: $spacing-2;
+  font-size: $text-sm;
+  
+  .label {
+    color: $neutral-600;
+  }
+  
+  .value {
+    font-weight: 600;
+    color: $secondary-600;
+  }
+}
+
+.address {
+  font-size: $text-xs;
+  color: $neutral-500;
+  font-family: $font-mono;
+}
+
+.arrow {
+  font-size: 10px;
+  color: $neutral-500;
+  margin-left: $spacing-2;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  border: none;
+  background: white;
+  text-align: left;
+  font-size: $text-sm;
+  color: $neutral-700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $neutral-50;
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid $neutral-100;
+  }
+
+  .icon {
+    font-size: 16px;
+  }
+}

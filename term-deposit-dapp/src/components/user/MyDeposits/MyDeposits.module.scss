@@ -1,0 +1,472 @@
+@use '../../../styles/variables' as *;
+
+.container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0a0f1e;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #0f172a;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding: $spacing-16 $spacing-6;
+  margin-bottom: $spacing-12;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  
+  @media (max-width: $breakpoint-lg) {
+    padding: $spacing-12 $spacing-4;
+    margin-bottom: $spacing-8;
+  }
+}
+
+.headerContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  animation: fadeInDown 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  font-size: $text-5xl;
+  font-weight: 800;
+  background: $gradient-primary;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: $spacing-4;
+  
+  @media (max-width: $breakpoint-lg) {
+    font-size: $text-4xl;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: $text-3xl;
+  }
+  
+  svg {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+.subtitle {
+  color: $text-muted;
+  font-size: $text-lg;
+  font-weight: 500;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  font-size: $text-2xl;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: $spacing-8;
+  padding: $spacing-6 0;
+  padding-bottom: $spacing-4;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  
+  svg {
+    color: $primary-400;
+  }
+}
+
+.section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 $spacing-6 $spacing-12;
+  width: 100%;
+  animation: fadeInUp 0.6s cubic-bezier(0.19, 1, 0.22, 1) 0.1s backwards;
+  
+  @media (max-width: $breakpoint-lg) {
+    padding: 0 $spacing-4 $spacing-8;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: $spacing-8;
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: $rounded-2xl;
+  padding: $spacing-7;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.6s cubic-bezier(0.19, 1, 0.22, 1) backwards;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.25);
+  }
+  
+  &.active {
+    border-color: rgba(14, 165, 233, 0.2);
+  }
+  
+  &.matured {
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+  
+  &.withdrawn {
+    border-color: rgba(16, 185, 129, 0.2);
+    opacity: 0.8;
+  }
+  
+  &.renewed {
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-6;
+  padding-bottom: $spacing-4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.badgeContainer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $rounded-full;
+  font-size: $text-xs;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  &.badge_active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(6, 182, 212, 0.25) 100%);
+    color: white;
+    border: 2px solid rgba(14, 165, 233, 0.6);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  &.badge_matured {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(251, 191, 36, 0.25) 100%);
+    color: white;
+    border: 2px solid rgba(245, 158, 11, 0.6);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  &.badge_withdrawn {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.25) 100%);
+    color: white;
+    border: 2px solid rgba(16, 185, 129, 0.6);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  &.badge_renewed {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(168, 85, 247, 0.25) 100%);
+    color: white;
+    border: 2px solid rgba(139, 92, 246, 0.6);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.depositId {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  color: $text-muted;
+  font-size: $text-sm;
+  font-weight: 600;
+  font-family: $font-mono;
+
+  svg {
+    color: #FFD700; // Gold color for NFT icon
+  }
+}
+
+.autoRenewBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-2 $spacing-3;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: $rounded-full;
+  font-size: $text-xs;
+  font-weight: 600;
+  color: #A78BFA;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nftInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-3;
+  padding: $spacing-4;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: $radius-lg;
+  margin-bottom: $spacing-4;
+}
+
+.nftIcon {
+  font-size: $text-3xl;
+  flex-shrink: 0;
+}
+
+.nftName {
+  font-size: $text-base;
+  font-weight: 700;
+  color: white;
+  margin-bottom: $spacing-1;
+}
+
+.nftDescription {
+  font-size: $text-sm;
+  color: $text-muted;
+  line-height: 1.5;
+}
+
+.daysLeft {
+  color: $primary-300;
+  font-size: $text-sm;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mainAmount {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  margin-bottom: $spacing-6;
+  padding: $spacing-6;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: $rounded-xl;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.amountLabel {
+  color: #94a3b8;
+  font-size: $text-xs;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.amount {
+  color: #38bdf8;
+  font-size: $text-5xl;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+}
+
+.currency {
+  color: $text-muted;
+  font-size: $text-sm;
+  font-weight: 600;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-4;
+  margin-bottom: $spacing-6;
+  padding: $spacing-5;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: $rounded-xl;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.detailLabel {
+  color: #94a3b8;
+  font-size: $text-xs;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.detailValue {
+  color: #f8fafc;
+  font-size: $text-base;
+  font-weight: 600;
+  font-family: $font-mono;
+}
+
+.resultBox {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: $rounded-xl;
+  padding: $spacing-6;
+  margin-bottom: $spacing-6;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.resultItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 0;
+}
+
+.resultLabel {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  color: #94a3b8;
+  font-size: $text-sm;
+  font-weight: 500;
+  
+  svg {
+    color: rgba(14, 165, 233, 0.8);
+  }
+}
+
+.resultValue {
+  color: #38bdf8;
+  font-size: $text-2xl;
+  font-weight: 800;
+  text-align: right;
+  text-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: $spacing-2 0;
+}
+
+.totalValue {
+  color: #38bdf8;
+  font-size: $text-3xl;
+  font-weight: 900;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.loadingContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: $spacing-16 $spacing-6;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-6;
+  
+  p {
+    color: $text-muted;
+    font-size: $text-lg;
+  }
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: $primary-500;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.emptyState {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: $spacing-16 $spacing-6;
+  text-align: center;
+  animation: fadeInUp 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  
+  h2 {
+    font-size: $text-3xl;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: $spacing-4;
+  }
+  
+  p {
+    color: $text-muted;
+    font-size: $text-lg;
+  }
+}
+
+.emptyIcon {
+  color: $primary-400;
+  opacity: 0.3;
+  margin-bottom: $spacing-6;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

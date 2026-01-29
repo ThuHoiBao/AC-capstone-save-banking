@@ -1,0 +1,19 @@
+{
+  "id": 6,
+  "image": "/images/plans/bg1.avif",
+  "name": "Wealth Maximizer (180d)",
+  "description": "Long-term maximum returns",
+  "features": [
+    "Highest APR",
+    "Long commitment",
+    "Maximum growth",
+    "Premium rewards"
+  ],
+  "riskLevel": "Low",
+  "recommended": [
+    "long-term investors",
+    "wealth builders"
+  ],
+  "color": "#8B5CF6",
+  "enabled": true
+}

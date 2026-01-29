@@ -1,0 +1,17 @@
+{
+  "id": 7,
+  "name": "Plan Number",
+  "description": "plan number 7 hot",
+  "features": [
+    "Feature 12",
+    "Feature 23"
+  ],
+  "riskLevel": "Low",
+  "recommended": [
+    "Recomment 1",
+    "Recomment 2"
+  ],
+  "image": "/images/plans/plan-7.jpg",
+  "color": "#3B82F6",
+  "enabled": true
+}

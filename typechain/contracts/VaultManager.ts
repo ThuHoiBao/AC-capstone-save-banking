@@ -35,9 +35,9 @@ export interface VaultManagerInterface extends Interface {
       | "paused"
       | "payoutInterest"
       | "renounceOwnership"
-      | "savingCore"
+      | "savingLogic"
       | "setFeeReceiver"
-      | "setSavingCore"
+      | "setSavingLogic"
       | "token"
       | "totalBalance"
       | "transferOwnership"
@@ -80,7 +80,7 @@ export interface VaultManagerInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "savingCore",
+    functionFragment: "savingLogic",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -88,7 +88,7 @@ export interface VaultManagerInterface extends Interface {
     values: [AddressLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "setSavingCore",
+    functionFragment: "setSavingLogic",
     values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
@@ -127,13 +127,16 @@ export interface VaultManagerInterface extends Interface {
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "savingCore", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "savingLogic",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setFeeReceiver",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setSavingCore",
+    functionFragment: "setSavingLogic",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
@@ -296,7 +299,7 @@ export interface VaultManager extends BaseContract {
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
-  savingCore: TypedContractMethod<[], [string], "view">;
+  savingLogic: TypedContractMethod<[], [string], "view">;
 
   setFeeReceiver: TypedContractMethod<
     [newReceiver: AddressLike],
@@ -304,8 +307,8 @@ export interface VaultManager extends BaseContract {
     "nonpayable"
   >;
 
-  setSavingCore: TypedContractMethod<
-    [_savingCore: AddressLike],
+  setSavingLogic: TypedContractMethod<
+    [_savingLogic: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -364,14 +367,14 @@ export interface VaultManager extends BaseContract {
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "savingCore"
+    nameOrSignature: "savingLogic"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "setFeeReceiver"
   ): TypedContractMethod<[newReceiver: AddressLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "setSavingCore"
-  ): TypedContractMethod<[_savingCore: AddressLike], [void], "nonpayable">;
+    nameOrSignature: "setSavingLogic"
+  ): TypedContractMethod<[_savingLogic: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "token"
   ): TypedContractMethod<[], [string], "view">;

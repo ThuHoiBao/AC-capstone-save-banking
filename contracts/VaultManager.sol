@@ -14,17 +14,17 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
     // State variables
     IERC20 private immutable _token;
     address public feeReceiver;
-    address public savingCore;
+    address public savingLogic; // Renamed from savingCore
     uint256 public totalBalance;
 
     // Errors
     error InsufficientBalance();
-    error OnlySavingCore();
+    error OnlySavingLogic(); // Renamed
     error InvalidAddress();
 
     // Modifiers
-    modifier onlySavingCore() {
-        if (msg.sender != savingCore) revert OnlySavingCore();
+    modifier onlySavingLogic() { // Renamed
+        if (msg.sender != savingLogic) revert OnlySavingLogic();
         _;
     }
 
@@ -65,10 +65,10 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
         emit FeeReceiverUpdated(newReceiver);
     }
 
-    /// @notice Admin sets the SavingCore contract address
-    function setSavingCore(address _savingCore) external onlyOwner {
-        if (_savingCore == address(0)) revert InvalidAddress();
-        savingCore = _savingCore;
+    /// @notice Admin sets the SavingLogic contract address
+    function setSavingLogic(address _savingLogic) external onlyOwner {
+        if (_savingLogic == address(0)) revert InvalidAddress();
+        savingLogic = _savingLogic;
     }
 
     /// @notice Admin pauses the vault (blocks payouts)
@@ -86,11 +86,10 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
         return address(_token);
     }
 
-    /// @notice SavingCore calls to pay interest to user
-
+    /// @notice SavingLogic calls to pay interest to user
     function payoutInterest(address to, uint256 amount)
         external
-        onlySavingCore
+        onlySavingLogic
         whenNotPaused
     {
         if (amount > totalBalance) revert InsufficientBalance();
@@ -99,10 +98,10 @@ contract VaultManager is IVaultManager, Ownable, Pausable {
         _token.safeTransfer(to, amount);
     }
 
-    /// @notice SavingCore calls to distribute penalty to feeReceiver
+    /// @notice SavingLogic calls to distribute penalty to feeReceiver
     function distributePenalty(uint256 amount)
         external
-        onlySavingCore
+        onlySavingLogic
         whenNotPaused
     {
         _token.safeTransfer(feeReceiver, amount);

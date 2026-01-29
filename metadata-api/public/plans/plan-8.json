@@ -1,0 +1,17 @@
+{
+  "id": 8,
+  "name": "Pro Vip",
+  "description": "Deposit VIP",
+  "features": [
+    "feture 1",
+    "future 1"
+  ],
+  "riskLevel": "Low",
+  "recommended": [
+    "Recommended For 1",
+    "Recommended For 2"
+  ],
+  "image": "/images/plans/plan-new.jpg",
+  "color": "#3B82F6",
+  "enabled": true
+}

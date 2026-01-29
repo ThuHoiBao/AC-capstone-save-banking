@@ -44,7 +44,7 @@ describe("Day 4: Withdrawals & Renewals", function () {
     await savingCore.waitForDeployment();
 
     // Set SavingCore in VaultManager
-    await vaultManager.setSavingCore(await savingCore.getAddress());
+    await vaultManager.setSavingLogic(await savingCore.getAddress());
 
     // Set grace period to 3 days
     await savingCore.setGracePeriod(259200); // 3 days = 259200 seconds

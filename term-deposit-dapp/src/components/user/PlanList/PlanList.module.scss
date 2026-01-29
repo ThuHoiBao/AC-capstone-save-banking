@@ -1,0 +1,260 @@
+@use '../../../styles/variables.scss' as *;
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $spacing-12 $spacing-6;
+  min-height: 600px;
+  width: 100%;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-8 $spacing-4;
+  }
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: 700;
+  color: $neutral-900;
+  margin-bottom: $spacing-10;
+  text-align: center;
+  
+  &::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, $primary-600, $secondary-600);
+    margin: $spacing-4 auto 0;
+    border-radius: 2px;
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: $spacing-16;
+  color: $neutral-600;
+  font-size: $text-lg;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: $spacing-8;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: white;
+  border: 1px solid $neutral-200;
+  border-radius: 16px;
+  padding: $spacing-8;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border-color: $primary-300;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-8;
+  padding-bottom: $spacing-6;
+  border-bottom: 2px solid $neutral-100;
+}
+
+.cardTitle {
+  font-size: $text-2xl;
+  font-weight: 700;
+  color: $neutral-900;
+}
+
+.apr {
+  font-size: $text-3xl;
+  font-weight: 800;
+  background: linear-gradient(135deg, $primary-600, $secondary-600);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-5;
+  margin-bottom: $spacing-8;
+}
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: $text-base;
+  padding: $spacing-3 0;
+}
+
+.label {
+  color: $neutral-600;
+  font-weight: 500;
+}
+
+.value {
+  font-weight: 700;
+  color: $neutral-900;
+}
+
+// Modal
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 20px;
+  padding: $spacing-10;
+  width: 90%;
+  max-width: 540px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+  
+  h3 {
+    margin-bottom: $spacing-8;
+    color: $neutral-900;
+    font-size: $text-2xl;
+    font-weight: 700;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-6;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  
+  label {
+    font-size: $text-base;
+    font-weight: 600;
+    color: $neutral-800;
+  }
+  
+  input {
+    padding: $spacing-4;
+    border: 2px solid $neutral-300;
+    border-radius: 12px;
+    font-size: $text-lg;
+    transition: all 0.2s;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-500;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+  }
+}
+
+.preview {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(16, 185, 129, 0.05));
+  padding: $spacing-6;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid $neutral-200;
+  
+  p {
+    font-size: $text-base;
+    color: $neutral-700;
+    font-weight: 500;
+  }
+}
+
+.maturityAmount {
+  font-size: $text-3xl !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, $primary-600, $secondary-600);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-top: $spacing-3 !important;
+}
+
+.error {
+  color: $danger-500;
+  font-size: $text-sm;
+  background: rgba(239, 68, 68, 0.1);
+  padding: $spacing-3;
+  border-radius: 8px;
+}
+
+.success {
+  color: $secondary-600;
+  font-size: $text-sm;
+  background: rgba(16, 185, 129, 0.1);
+  padding: $spacing-3;
+  border-radius: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-4;
+  margin-top: $spacing-6;
+  
+  button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .container {
+    padding: $spacing-8 $spacing-4;
+  }
+}

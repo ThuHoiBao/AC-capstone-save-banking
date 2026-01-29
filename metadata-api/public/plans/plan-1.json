@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "image": "/images/plans/pl1.jpg",
+  "name": "Flexible Saver (7d)",
+  "description": "Short-term, high-liquidity savings plan",
+  "features": [
+    "Low minimum deposit",
+    "Quick maturity",
+    "Flexible terms",
+    "Daily liquidity"
+  ],
+  "riskLevel": "Low",
+  "recommended": [
+    "beginners",
+    "short-term savers"
+  ],
+  "color": "#10B981",
+  "enabled": true
+}

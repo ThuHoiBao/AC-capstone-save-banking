@@ -1,43 +1,699 @@
-# Plan & Day-1 Setup
+# 🚀 MASTER PLAN - 1-WEEK SPRINT (JSON Metadata)
 
-## Mục tiêu tuần (Mon-Fri)
-**Ưu tiên:** Logic + Test + Script Deploy hoàn chỉnh trước, Frontend là bước cuối cùng.
-- Xây dựng smart contract tiết kiệm (plan, deposit NFT, vault, renew/withdraw) → fully tested.
-- Chuẩn bị mock stablecoin 6 decimals + vault funding flow.
-- Viết toàn bộ unit tests, edge cases, scripts thành công trên localhost/testnet.
-- Frontend (React) giao diện lấy dữ từ contract đã test xong.
+> **Tái cấu trúc Term Deposit DApp với JSON-based metadata (No Database)**
+>
+> **Ngày bắt đầu:** 29/01/2026  
+> **Deadline:** 7 ngày  
+> **Kiến trúc:** On-chain Critical Data + Static JSON Files  
+> **Backend:** Express.js (50 dòng) + JSON files  
+> **Deploy:** Vercel (free)
 
-## Lịch làm việc chi tiết
-- **Thứ 2 :** 
-  - ✅ Chuẩn hoá yêu cầu, setup project, mock token.
-  - ✅ Thiết kế data struct: Plan (tenorDays, aprBps, minDeposit, maxDeposit, earlyWithdrawPenaltyBps, enabled), Deposit (owner, planId, principal, startAt, maturityAt, status, aprBpsAtOpen, penaltyBpsAtOpen).
-  - ✅ Tạo thư mục chuẩn: `contracts/interfaces`, `contracts/libs`, `contracts/types`, `contracts/tokens`.
-  - ✅ Viết `Types.sol` (structs + enum), `InterestMath.sol` (simple interest), `ISavingCore.sol`, `IVaultManager.sol` (hàm + events).
-  - ✅ Chạy `npx hardhat compile` và `npx hardhat test` xác nhận cấu trúc OK.
-  - ✅ Ghi chú: chưa implement logic SavingCore/VaultManager, sẽ làm ngày 4.
+---
+
+## 🎯 OVERVIEW: JSON-Based Approach
+
+```
+ON-CHAIN (Blockchain)               OFF-CHAIN (Static JSON)
+────────────────────────            ──────────────────────────
+DepositCertificate.sol              metadata-api/
+├─ depositId, principal      ←──→   ├─ public/plans/
+├─ dates, APR, penalty               │  ├─ plan-1.json  ← Edit này!
+└─ tokenURI() → API                  │  ├─ plan-2.json
+                                     │  └─ plan-3.json
+SavingLogic.sol                      ├─ public/images/
+├─ createPlan()                      │  ├─ plan-icons/
+├─ openDeposit()                     │  └─ nft-bg.png
+└─ withdraw()                        └─ server.js (Express)
+
+VaultManager.sol                     Deployment: Vercel/Railway
+└─ Keep as-is                        Cost: $0 (free tier)
+```
+
+**Key Benefits:**
+- ✅ **No Database:** Chỉ cần JSON files
+- ✅ **Easy Update:** Sửa JSON → git push → done
+- ✅ **Cost $0:** Vercel free hosting
+- ✅ **Version Control:** Git history cho metadata
+- ✅ **Multi-language:** Add keys to JSON
+- ✅ **1-Week Sprint:** Thay vì 3 tuần
+
+---
+
+## 📅 1-WEEK IMPLEMENTATION PLAN
+
+**Day 1-2:** Smart Contracts + Deploy Sepolia  
+**Day 3-4:** Metadata API + JSON files + Deploy Vercel  
+**Day 5-7:** Frontend Integration + Testing + Launch
+
+---
+
+## 📅 WEEK 1: SMART CONTRACTS
+
+### Day 1-2: Core Contracts
+
+**✅ Tasks:**
+
+## 📊 Progress Tracker
+
+### ✅ WEEK 0: Analysis & Design (COMPLETED)
+- [x] Phân tích SavingCore.sol hiện tại (365 dòng monolithic)
+- [x] Xác định vi phạm SOLID principles
+- [x] Thiết kế kiến trúc 3-layer mới
+- [x] Tạo ARCHITECTURE_REDESIGN_PLAN.md (100KB comprehensive)
+- [x] Plan hybrid on-chain/off-chain metadata strategy
+
+---
+
+### 🔵 WEEK 1: SMART CONTRACTS (IN PROGRESS)
+
+#### Day 1-2: Core Contracts ⏳
+- [ ] **DepositCertificate.sol** (NEW - ERC721 NFT Only)
+  ```solidity
+  // contracts/DepositCertificate.sol
+  - struct DepositCore (on-chain critical data)
+  - enum DepositStatus (Active/Withdrawn/Renewed)
+  - function mint() → onlySavingLogic
+  - function updateStatus() → onlySavingLogic
+  - function getDepositCore() → view
+  - function tokenURI() → points to API
+  - function setSavingLogic() → admin (upgrade capability)
+   📋 DAY 1-2: SMART CONTRACTS 🔨
+
+### Tasks:
+  // contracts/SavingLogic.sol
+  - struct PlanCore (on-chain rules only)
+  - IDepositCertificate certificate (dependency injection)
+  - IVaultManager vaultManager (dependency injection)
+  - function createPlan()
+  - function openDeposit() → delegates mint to Certificate
+  - ReentrancyGuard on all mutations
+  ```
+- [ ] **IDepositCertificate.sol** (NEW - Interface)
+  ```solidity
+  // contracts/interfaces/IDepositCertificate.sol
+  interface IDepositCertificate {
+      function mint(...) external;
+      function updateStatus(...) external;
+      function getDepositCore(...) external view returns (DepositCore);
+      function ownerOf(...) external view returns (address);
+  }
+  ```
+- [ ] **Update VaultManager.sol** (Minor changes)
+  ```solidity
+  // Change: savingCore → savingLogic
+  address public savingLogic;  // Renamed from savingCore
   
-- **Thứ 3:** 
-  - ✅ Implement `SavingCore` core logic: `createPlan()`, `updatePlan()`, `openDeposit()` (ERC20 transfer, snapshot APR/penalty, mint ERC721).
-  - ✅ Scaffold `VaultManager`: `fundVault()`, `setFeeReceiver()`, `pause/unpause`; restrict interest/penalty payouts to calls from `SavingCore`.
-  - ✅ Wire SavingCore ↔ VaultManager + add configurable `gracePeriod`.
-  - ✅ Unit tests: `testCreatePlan`, `testOpenDeposit`, constraints (enabled/min/max), event checks.
+  modifier onlySavingLogic() {  // Renamed
+      require(msg.sender == savingLogic, "Only SavingLogic");
+      _;
+  }
+  ```
 
-- **Thứ 4:**
-  - ✅ Implement withdrawals: `withdrawAtMaturity()` (principal + interest by snapshot APR), `earlyWithdraw()` (principal - penalty, send fee via VaultManager).
-  - ✅ Implement renewals: `renewDeposit()` (manual) and `autoRenewDeposit()` (auto after 3-day grace, keep original APR).
-  - ✅ Integrate payouts via `VaultManager`: `payoutInterest()`, `distributePenalty()`.
-  - ✅ Unit tests: withdraw, early, renew, auto-renew, vault ops, pause.
-- **Thứ 5:**
-  - ✅ Edge-case coverage: no funds in vault, exceed max, zero amount, time/grace windows, APR change.
-  - ✅ Deploy script `deploy.ts`: deploy `MockUSDC`, `VaultManager`, `SavingCore`, seed plans, fund vault.
-  - ✅ Bắt đầu setup frontend (React + Vite), prepare ABI, provider, basic pages.
-  - ✅ Chạy end-to-end trên localhost: mở sổ → rút → auto/manual renew; optional testnet if `.env` sẵn sàng.
-  - ✅ Coverage >90% cho tính năng chính.
-- **Thứ 6:**
-  - ✅ Hoàn thiện frontend: form deposit, list deposits (NFT), withdraw/renew, vault balance.
-  - ✅ Kết nối web3 (ethers), trạng thái giao dịch, thông báo.
-  - Integration test UI ↔ contracts; buffer sửa lỗi; security review (access control, reentrancy, math).
-  - Chuẩn bị demo: faucet/testnet, walkthrough flow.
+### Tests:
+- [ ] `test/depositCertificate.spec.ts`
+  - mint() only by authorized
+  - tokenURI() returns correct endpoint
+  - getDepositCore() returns struct
+  
+- [ ] `test/savingLogic.spec.ts`
+  - openDeposit() mints NFT
+  - withdrawAtMaturity() calculates interest
+  - earlyWithdraw() applies penalty
+
+### Deploy to Sepolia:
+```bash
+npx hardhat deploy --network sepolia
+npx hardhat verify --network sepolia <address>
+```
+
+**🎯 Success:** Contracts deployed + verified on Etherscan
+
+---
+
+## 📋 DAY 3-4: METADATA API + JSON 🖥️
+
+### 1. Setup Project Structure:
+```bash
+mkdir metadata-api
+cd metadata-api
+npm init -y
+npm install express cors ethers dotenv
+```
+
+### 2. Create JSON Files:
+
+**File:** `public/plans/plan-1.json`
+```json
+{
+  "planId": 1,
+  "metadata": {
+    "names": {
+      "en": "90-Day Savings Plus",
+      "vi": "Gói Tiết Kiệm 90 Ngày"
+    },
+    "descriptions": {
+      "en": "Perfect for short-term goals",
+      "vi": "Hoàn hảo cho mục tiêu ngắn hạn"
+    },
+    "icon": "/images/plan-1-icon.png",
+    "color": "#3B82F6",
+    "benefits": [
+      {"en": "7.2% APR", "vi": "7.2% lãi suất"},
+      {"en": "Flexible withdrawal", "vi": "Rút linh hoạt"}
+    ],
+    "tags": ["Short-term", "Popular"]
+  }
+}
+```
+
+**Tương tự cho:** `plan-2.json`, `plan-3.json`
+
+### 3. Add Images:
+```
+public/images/
+├─ plan-1-icon.png   (256x256)
+├─ plan-2-icon.png
+├─ plan-3-icon.png
+└─ certificate-bg.png (1000x1400)
+```
+
+### 4. Implement Server (`server.js`):
+```javascript
+const express = require('express');
+const { ethers } = require('ethers');
+require('dotenv').config();
+
+const app = express();
+const PORT = 3001;
+
+// Setup contract
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+const certificate = new ethers.Contract(
+  process.env.CERTIFICATE_ADDRESS,
+  require('./abis/DepositCertificate.json'),
+  provider
+);
+
+// 🎯 Main endpoint
+app.get('/metadata/:tokenId', async (req, res) => {
+  const tokenId = parseInt(req.params.tokenId);
+  
+  // 1. Fetch on-chain
+  const depositCore = await certificate.getDepositCore(tokenId);
+  
+  // 2. Load plan metadata
+  const plan = require(`./public/plans/plan-${depositCore.planId}.json`);
+  
+  // 3. Build ERC721 metadata
+  const metadata = {
+    name: `Deposit Certificate #${tokenId}`,
+    description: `${plan.metadata.names.en} | ${ethers.formatUnits(depositCore.principal, 6)} USDC`,
+    image: `/images/certificate-bg.png`,
+    attributes: [
+      { trait_type: "Plan", value: plan.metadata.names.en },
+      { trait_type: "Principal", value: parseFloat(ethers.formatUnits(depositCore.principal, 6)) },
+      { trait_type: "APR", value: depositCore.aprBps / 100 }
+    ]
+  };
+  
+  res.json(metadata);
+});
+
+app.get('/api/plans', (req, res) => {
+  const plans = [
+    require('./public/plans/plan-1.json'),
+    require('./public/plans/plan-2.json'),
+    require('./public/plans/plan-3.json')
+  ];
+  res.json(plans);
+});
+
+app.listen(PORT, () => console.log(`API running on :${PORT}`));
+```
+
+### 5. Test Locally:
+```bash
+npm start
+curl http://localhost:3001/api/plans
+curl http://localhost:3001/metadata/1
+```
+
+### 6. Deploy to Vercel:
+```bash
+vercel deploy
+# URL: https://term-deposit-api.vercel.app
+```
+
+**🎯 Success:** API trả về metadata đúng format
+
+---
+
+## 📋 DAY 5-7: FRONTEND INTEGRATION ⚛️
+
+### 1. Create Hooks:
+
+**File:** `hooks/useDeposit.ts`
+```typescript
+import { useState, useEffect } from 'react';
+import { useContractRead } from 'wagmi';
+
+const API_URL = 'https://term-deposit-api.vercel.app';
+
+export const useDeposit = (tokenId: number) => {
+  const [metadata, setMetadata] = useState(null);
+  
+  // Fetch on-chain
+  const { data: depositCore } = useContractRead({
+    address: CERTIFICATE_ADDRESS,
+    abi: CertificateABI,
+    functionName: 'getDepositCore',
+    args: [tokenId]
+  });
+  
+  // Fetch off-chain
+  useEffect(() => {
+    if (!tokenId) return;
+    
+    fetch(`${API_URL}/metadata/${tokenId}`)
+      .then(r => r.json())
+      .then(setMetadata);
+  }, [tokenId]);
+  
+  return { depositCore, metadata };
+};
+```
+
+**File:** `hooks/usePlans.ts`
+```typescript
+export const usePlans = () => {
+  const [plans, setPlans] = useState([]);
+  
+  useEffect(() => {
+    fetch(`${API_URL}/api/plans`)
+      .then(r => r.json())
+      .then(setPlans);
+  }, []);
+  
+  return { plans };
+};
+```
+
+### 2. Update Components:
+
+**File:** `components/PlanCard.tsx`
+```typescript
+export const PlanCard = ({ plan }: { plan: any }) => {
+  return (
+    <div style={{ borderColor: plan.metadata.color }}>
+      <img src={plan.metadata.icon} alt={plan.metadata.names.en} />
+      <h3>{plan.metadata.names.vi}</h3>  {/* Multi-language */}
+      <p>{plan.metadata.descriptions.vi}</p>
+      
+      <div>
+        {plan.metadata.benefits.map((b: any) => (
+          <div key={b.vi}>✓ {b.vi}</div>
+        ))}
+      </div>
+      
+      <button>Mở sổ tiết kiệm</button>
+    </div>
+  );
+};
+```
+
+### 3. Update Pages:
+
+**File:** `pages/PlansPage.tsx`
+```typescript
+export const PlansPage = () => {
+  const { plans } = usePlans();
+  
+  return (
+    <div className="plans-grid">
+      {plans.map(plan => (
+        <PlanCard key={plan.planId} plan={plan} />
+      ))}
+    </div>
+  );
+};
+```
+
+### 4. Test Full Flow:
+- [ ] View plans (off-chain names/icons)
+- [ ] Open deposit (on-chain transaction)
+- [ ] View deposit detail (hybrid data)
+- [ ] Withdraw (on-chain)
+- [ ] Check OpenSea (NFT metadata)
+
+### 5. Deploy Frontend:
+```bash
+npm run build
+vercel deploy
+```
+
+**🎯 Success:** Full flow working end-to-end
+
+---
+
+## 🔧 HOW TO UPDATE METADATA
+
+### Scenario: Đổi tên plan từ "90-Day" → "90-Day Premium"
+
+```bash
+# 1. Edit JSON
+vim metadata-api/public/plans/plan-1.json
+
+# Change:
+"names": {
+  "en": "90-Day Premium Savings",  # ← Updated
+  "vi": "Gói Tiết Kiệm Premium 90 Ngày"
+}
+
+# 2. Commit & push
+git add .
+git commit -m "Update plan 1 name to Premium"
+git push
+
+# 3. Vercel auto-deploy (~30 seconds)
+# Done! Metadata updated
+```
+
+**No SQL, no migration, no database restart!**
+
+---
+
+## 📊 PROGRESS TRACKER
+
+### ✅ COMPLETED (Old Architecture)
+- [x] SavingCore.sol monolithic (365 dòng)
+- [x] Basic tests
+- [x] Deploy to Sepolia
+
+### 🔵 DAY 1-2: Smart Contracts ⏳
+- [ ] DepositCertificate.sol (ERC721 only)
+  - [ ] getDepositCore() struct
+  - [ ] tokenURI() → API endpoint
+  - [ ] mint() onlySavingLogic
+- [ ] SavingLogic.sol (Business logic)
+  - [ ] IDepositCertificate interface
+  - [ ] openDeposit() delegates mint
+- [ ] Tests (>95% coverage)
+- [ ] Deploy to Sepolia
+- [ ] Verify on Etherscan
+
+### 🔵 DAY 3-4: Metadata API ⏳
+- [ ] Create metadata-api/ folder
+- [ ] Write JSON files:
+  - [ ] plan-1.json (90-Day)
+  - [ ] plan-2.json (180-Day)
+  - [ ] plan-3.json (365-Day)
+- [ ] Add images (icons + NFT background)
+- [ ] Implement server.js (Express)
+- [ ] Test endpoints locally
+- [ ] Deploy to Vercel
+
+### 🔵 DAY 5-7: Frontend ⏳
+- [ ] Create hooks:
+  - [ ] useDeposit(tokenId)
+  - [ ] usePlans()
+- [ ] Update components:
+  - [ ] PlanCard (show JSON metadata)
+  - [ ] DepositCard (hybrid data)
+- [ ] Update pages:
+  - [ ] /plans
+  - [ ] /deposit/:id
+- [ ] Test multi-language (vi/en)
+- [ ] Deploy to Vercel
+- [ ] Launch! 🚀
+- [ ] **Implement SavingLogic functions:**
+  - [ ] `openDeposit(planId, amount)` - Delegates to certificate.mint()
+  - [ ] `withdrawAtMaturity(depositId)` - Queries certificate.ownerOf()
+  - [ ] `earlyWithdraw(depositId)` - Penalty calculation
+  - [ ] `renewDeposit(oldId, newPlanId)` - Compound interest
+  
+- [ ] **Write comprehensive tests:**
+  - [ ] `test/depositCertificate.spec.ts`
+    - mint() only callable by authorized logic
+    - updateStatus() changes deposit status
+    - tokenURI() returns correct API endpoint
+    - setSavingLogic() allows upgrade
+  
+  - [ ] `test/savingLogic.spec.ts`
+    - createPlan() stores PlanCore correctly
+    - openDeposit() mints NFT via Certificate
+    - withdrawAtMaturity() calculates interest from snapshot
+    - earlyWithdraw() applies penalty from snapshot
+    - renewDeposit() compounds interest correctly
+  
+  - [ ] `test/integration.spec.ts`
+    - Full flow: Create plan → Open deposit → Withdraw
+    - Upgrade scenario: Deploy LogicV2 → setSavingLogic → Test
+
+**🎯 Success Criteria:**
+- ✅ Test coverage >95%
+- ✅ All edge cases covered (maturity, penalties, upgrades)
+- ✅ Gas optimization verified
+
+#### Day 5: Deployment & Verification 🚀
+- [ ] **Create deployment scripts:**
+  ```javascript
+  // deploy/01-deploy-certificate.ts
+  - Deploy DepositCertificate
+  - Set baseURI to "https://api.yourdapp.com/metadata/"
+  
+  // deploy/02-deploy-logic.ts
+  - Deploy SavingLogic (with Certificate + Vault addresses)
+  
+  // deploy/03-configure.ts
+  - Certificate.setSavingLogic(logicAddress)
+  - VaultManager.setSavingCore(logicAddress)
+  
+  // deploy/04-seed-data.ts
+  - Create plans (90-day, 180-day, 365-day)
+  - Fund vault with 500,000 USDC
+  ```
+
+- [ ] **Deploy to networks:**
+  - [ ] Localhost (hardhat node)
+    ```bash
+    npx hardhat node
+    npx hardhat deploy --network localhost
+    npx hardhat test --network localhost
+    ```
+  
+  - [ ] Sepolia testnet
+    ```bash
+    npx hardhat deploy --network sepolia
+    npx hardhat verify --network sepolia <address>
+    ```
+
+- [ ] **Verify contracts on Etherscan**
+  - [ ] DepositCertificate verified
+  - [ ] SavingLogic verified
+  - [ ] VaultManager verified (updated)
+
+**🎯 Success Criteria:**
+- ✅ All contracts deployed successfully
+- ✅ Configuration correct (permissions set)
+- ✅ Verified on Etherscan with green checkmarks
+- ✅ Test transactions work on Sepolia
+
+---
+
+### 🟢 WEEK 2: OFF-CHAIN INFRASTRUCTURE
+
+#### Day 1-2: Backend API 🖥️
+- [ ] **Setup Node.js + Express API**
+  ```
+  metadata-api/
+  ├─ src/
+  │  ├─ server.ts
+  │  ├─ routes/
+  │  │  ├─ metadata.ts
+  │  │  └─ plans.ts
+  │  ├─ services/
+  │  │  ├─ blockchain.ts
+  │  │  └─ database.ts
+  │  └─ db/
+  │     ├─ schema.sql
+  │     └─ seed.sql
+  ├─ .env
+  └─ package.json
+  ```
+
+- [ ] **Implement endpoints:**
+  - [ ] `GET /metadata/:tokenId?v=1`
+    - Fetch on-chain: certificate.getDepositCore(tokenId)
+    - Fetch off-chain: db.query('plans_metadata WHERE plan_id = ?')
+    - Merge & return ERC721 metadata JSON
+  
+  - [ ] `GET /api/plans`
+    - Fetch all plans (on-chain + off-chain)
+    - Return combined data with translations
+  
+  - [ ] `GET /api/deposits/:tokenId`
+    - Full deposit info (hybrid data)
+    - Calculate expected interest
+    - Time to maturity
+
+- [ ] **Setup caching with Redis**
+  - [ ] Cache metadata responses (5 min TTL)
+  - [ ] Cache plans list (10 min TTL)
+  - [ ] Invalidation via ?v= query param
+
+**🎯 Success Criteria:**
+- ✅ API responds < 200ms (cached)
+- ✅ All endpoints return correct data
+- ✅ Error handling for invalid tokenIds
+
+#### Day 3: Database & Metadata 💾
+- [ ] **Setup PostgreSQL**
+  ```sql
+  CREATE TABLE plans_metadata (
+      id SERIAL PRIMARY KEY,
+      plan_id INTEGER NOT NULL UNIQUE,
+      names JSONB NOT NULL,  -- {"en": "...", "vi": "..."}
+      descriptions JSONB NOT NULL,
+      icon_url VARCHAR(255),
+      benefits JSONB,
+      ...
+  );
+  ```
+
+- [ ] **Insert sample data**
+  ```sql
+  INSERT INTO plans_metadata (plan_id, names, descriptions) VALUES
+  (1, 
+   '{"en": "90-Day Savings", "vi": "Gói Tiết Kiệm 90 Ngày"}',
+   '{"en": "Perfect for short-term goals", "vi": "Hoàn hảo cho mục tiêu ngắn hạn"}'
+  );
+  ```
+
+- [ ] **Setup CDN for images**
+  - [ ] Upload plan icons (64x64)
+  - [ ] Upload NFT certificate templates (1000x1400)
+  - [ ] Configure Cloudflare CDN
+
+**🎯 Success Criteria:**
+- ✅ Database schema created
+- ✅ Sample data inserted
+- ✅ Images accessible via CDN
+
+#### Day 4-5: Testing & Deployment ☁️
+- [ ] **Integration testing**
+  - [ ] Test API with real smart contract data
+  - [ ] Test all languages (vi/en/cn)
+  - [ ] Test OpenSea metadata format
+
+- [ ] **Deploy to production**
+  - [ ] Deploy API to Railway/Vercel
+  - [ ] Setup environment variables
+  - [ ] Configure CORS for frontend
+  - [ ] Test production endpoints
+
+**🎯 Success Criteria:**
+- ✅ API live at https://api.yourdapp.com
+- ✅ 99.9% uptime
+- ✅ SSL certificate valid
+
+---
+
+### 🔵 WEEK 3: FRONTEND INTEGRATION
+
+#### Day 1-2: React Hooks 🪝
+- [ ] **Create custom hooks**
+  ```typescript
+  // hooks/useDeposit.ts
+  export const useDeposit = (tokenId: number) => {
+      const [data, setData] = useState(null);
+      
+      useEffect(() => {
+          // 1. Fetch on-chain
+          const depositCore = await certificate.getDepositCore(tokenId);
+          
+          // 2. Fetch off-chain
+          const tokenURI = await certificate.tokenURI(tokenId);
+          const metadata = await fetch(tokenURI).then(r => r.json());
+          
+          // 3. Merge
+          setData({ onchain: depositCore, offchain: metadata });
+      }, [tokenId]);
+      
+      return data;
+  };
+  ```
+
+- [ ] **Create hooks:**
+  - [ ] `useDeposit(tokenId)` - Hybrid data for single deposit
+  - [ ] `usePlan(planId)` - Hybrid data for plan
+  - [ ] `useAllPlans()` - All plans with off-chain metadata
+  - [ ] `useUserDeposits(address)` - User's NFT collection
+
+#### Day 3-4: Components & Pages 🎨
+- [ ] **Update components**
+  - [ ] `PlanCard.tsx` - Show off-chain names, images, benefits
+  - [ ] `DepositCard.tsx` - Display hybrid data (principal from chain, image from API)
+  - [ ] `OpenDepositForm.tsx` - Select plan with rich metadata
+  - [ ] `WithdrawButton.tsx` - Show expected interest from on-chain calc
+
+- [ ] **Update pages**
+  - [ ] `/plans` - Grid of plans with off-chain metadata
+  - [ ] `/deposit/:id` - Detail page with hybrid data
+  - [ ] `/my-deposits` - User's NFT gallery
+
+#### Day 5: Testing & Launch 🚀
+- [ ] **E2E testing**
+  - [ ] Test complete flow (open → withdraw → renew)
+  - [ ] Test multi-language switching
+  - [ ] Test mobile responsiveness
+
+- [ ] **Deploy frontend**
+  - [ ] Build production: `npm run build`
+  - [ ] Deploy to Vercel
+  - [ ] Configure .env with production addresses
+  - [ ] Test on Sepolia before mainnet
+
+**🎯 Final Success Criteria:**
+- ✅ All features working end-to-end
+- ✅ UI shows both on-chain and off-chain data
+- ✅ Multi-language support functional
+- ✅ Gas costs reduced as planned
+- ✅ NFTs display correctly on OpenSea
+
+---
+
+## 📈 Key Metrics & KPIs
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                    SUCCESS METRICS                             │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  Gas Efficiency:                                               │
+│  □ Plan creation: <35,000 gas (target: 30k)                   │
+│  □ Deposit: <240,000 gas (target: 235k)                       │
+│  □ Withdraw: <185,000 gas (target: 180k)                      │
+│                                                                │
+│  Test Coverage:                                                │
+│  □ Unit tests: >95%                                            │
+│  □ Integration tests: >90%                                     │
+│  □ Edge cases: All covered                                     │
+│                                                                │
+│  SOLID Compliance:                                             │
+│  □ Single Responsibility: ✅ (3 contracts, 1 job each)        │
+│  □ Open/Closed: ✅ (upgradeable via setSavingLogic)           │
+│  □ Liskov Substitution: ✅ (interface-based)                  │
+│  □ Interface Segregation: ✅ (small interfaces)               │
+│  □ Dependency Inversion: ✅ (dependency injection)            │
+│                                                                │
+│  User Experience:                                              │
+│  □ API response time: <200ms                                  │
+│  □ Frontend load time: <2s                                    │
+│  □ Multi-language: vi/en/cn supported                         │
+│  □ OpenSea compatibility: ✅                                  │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
 
 ## Day-1 Setup (Hardhat)
 1) Cài Node >=18 & Yarn. Kiểm tra: `node -v`, `yarn -v`.
