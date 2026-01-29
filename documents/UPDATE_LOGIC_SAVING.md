@@ -37,7 +37,48 @@ Tái cấu trúc kiến trúc smart contract hiện tại để tách biệt log
 ### ✅ Giải pháp đề xuất (Proposed Solution)
 ## 1. So sánh Kiến trúc Cũ vs Mới
 
-### 1.1 Kiến trúc Cũ (Monolithic - Đơn khối)
+**Kiến trúc 3 Contract Tách Biệt:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              KIẾN TRÚC MỚI - 3 CONTRACT RIÊNG BIỆT            │
+└──────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────┐
+│  DepositCertificate.sol │  ✅ ERC721 NFT (BẤT BIẾN - IMMUTABLE)
+│  (150 dòng)             │     → Chỉ mint/burn NFT
+│                         │     → Metadata đẹp (SVG passbook)
+│  - mint()               │     → An toàn tuyệt đối
+│  - burn()               │     → Không bao giờ phải deploy lại
+│  - tokenURI()           │
+│  - metadata storage     │
+└────────┬────────────────┘
+         │ owns NFT
+         │
+         ↓
+┌─────────────────────────┐     ┌─────────────────────────┐
+│   SavingLogic.sol       │────→│   VaultManager.sol      │
+│   (200 dòng)            │calls│   (Giữ nguyên)          │
+│                         │     │                         │
+│  ✅ BUSINESS LOGIC      │     │  ✅ LIQUIDITY POOL      │
+│  (CÓ THỂ NÂNG CẤP)      │     │  (GIỮ NGUYÊN)           │
+│                         │     │                         │
+│  - openDeposit()        │     │  - fundVault()          │
+│  - withdraw()           │     │  - payoutInterest()     │
+│  - renewDeposit()       │     │  - distributePenalty()  │
+│  - createPlan()         │     │  - pause/unpause        │
+│  - queries NFT owner    │     └─────────────────────────┘
+└─────────────────────────┘
+```
+
+**Lợi ích ngay lập tức:**
+- ✅ **NFT an toàn**: Logic lỗi không ảnh hưởng NFT
+- ✅ **Upgrade dễ dàng**: Chỉ thay SavingLogic, NFT vẫn hoạt động
+- ✅ **Tuân thủ SOLID**: Mỗi contract 1 trách nhiệm
+- ✅ **Dễ test**: Test từng contract độc lập
+- ✅ **Gas tối ưu**: Tách nhỏ giảm gas usage operations
+
+### Kiến trúc Cũ (Monolithic - Đơn khối)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -85,7 +126,7 @@ Tái cấu trúc kiến trúc smart contract hiện tại để tách biệt log
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Kiến trúc Mới (Separated - Tách biệt)
+### Kiến trúc Mới (Separated - Tách biệt)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -155,43 +196,3 @@ Tái cấu trúc kiến trúc smart contract hiện tại để tách biệt log
 ```
 
 ---
-**Kiến trúc 3 Contract Tách Biệt:**
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│              KIẾN TRÚC MỚI - 3 CONTRACT RIÊNG BIỆT            │
-└──────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────┐
-│  DepositCertificate.sol │  ✅ ERC721 NFT (BẤT BIẾN - IMMUTABLE)
-│  (150 dòng)             │     → Chỉ mint/burn NFT
-│                         │     → Metadata đẹp (SVG passbook)
-│  - mint()               │     → An toàn tuyệt đối
-│  - burn()               │     → Không bao giờ phải deploy lại
-│  - tokenURI()           │
-│  - metadata storage     │
-└────────┬────────────────┘
-         │ owns NFT
-         │
-         ↓
-┌─────────────────────────┐     ┌─────────────────────────┐
-│   SavingLogic.sol       │────→│   VaultManager.sol      │
-│   (200 dòng)            │calls│   (Giữ nguyên)          │
-│                         │     │                         │
-│  ✅ BUSINESS LOGIC      │     │  ✅ LIQUIDITY POOL      │
-│  (CÓ THỂ NÂNG CẤP)      │     │  (GIỮ NGUYÊN)           │
-│                         │     │                         │
-│  - openDeposit()        │     │  - fundVault()          │
-│  - withdraw()           │     │  - payoutInterest()     │
-│  - renewDeposit()       │     │  - distributePenalty()  │
-│  - createPlan()         │     │  - pause/unpause        │
-│  - queries NFT owner    │     └─────────────────────────┘
-└─────────────────────────┘
-```
-
-**Lợi ích ngay lập tức:**
-- ✅ **NFT an toàn**: Logic lỗi không ảnh hưởng NFT
-- ✅ **Upgrade dễ dàng**: Chỉ thay SavingLogic, NFT vẫn hoạt động
-- ✅ **Tuân thủ SOLID**: Mỗi contract 1 trách nhiệm
-- ✅ **Dễ test**: Test từng contract độc lập
-- ✅ **Gas tối ưu**: Tách nhỏ giảm gas usage operations
