@@ -28,14 +28,14 @@
   - ✅ Integrate payouts via `VaultManager`: `payoutInterest()`, `distributePenalty()`.
   - ✅ Unit tests: withdraw, early, renew, auto-renew, vault ops, pause.
 - **Thứ 5:**
-  - Edge-case coverage: no funds in vault, exceed max, zero amount, time/grace windows, APR change.
-  - Deploy script `deploy.ts`: deploy `MockUSDC`, `VaultManager`, `SavingCore`, seed plans, fund vault.
-  - Bắt đầu setup frontend (React + Vite), prepare ABI, provider, basic pages.
-  - Chạy end-to-end trên localhost: mở sổ → rút → auto/manual renew; optional testnet if `.env` sẵn sàng.
-  - Coverage >90% cho tính năng chính.
+  - ✅ Edge-case coverage: no funds in vault, exceed max, zero amount, time/grace windows, APR change.
+  - ✅ Deploy script `deploy.ts`: deploy `MockUSDC`, `VaultManager`, `SavingCore`, seed plans, fund vault.
+  - ✅ Bắt đầu setup frontend (React + Vite), prepare ABI, provider, basic pages.
+  - ✅ Chạy end-to-end trên localhost: mở sổ → rút → auto/manual renew; optional testnet if `.env` sẵn sàng.
+  - ✅ Coverage >90% cho tính năng chính.
 - **Thứ 6:**
-  - Hoàn thiện frontend: form deposit, list deposits (NFT), withdraw/renew, vault balance.
-  - Kết nối web3 (ethers), trạng thái giao dịch, thông báo.
+  - ✅ Hoàn thiện frontend: form deposit, list deposits (NFT), withdraw/renew, vault balance.
+  - ✅ Kết nối web3 (ethers), trạng thái giao dịch, thông báo.
   - Integration test UI ↔ contracts; buffer sửa lỗi; security review (access control, reentrancy, math).
   - Chuẩn bị demo: faucet/testnet, walkthrough flow.
 
