@@ -78,7 +78,9 @@ Tái cấu trúc kiến trúc smart contract hiện tại để tách biệt log
 - ✅ **Dễ test**: Test từng contract độc lập
 - ✅ **Gas tối ưu**: Tách nhỏ giảm gas usage operations
 
-### Kiến trúc Cũ (Monolithic - Đơn khối)
+
+## 1. So sánh Kiến trúc cũ vs mới toàn hệ thống 
+### 1.1 Kiến trúc Cũ (Monolithic - Đơn khối)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -126,7 +128,7 @@ Tái cấu trúc kiến trúc smart contract hiện tại để tách biệt log
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Kiến trúc Mới (Separated - Tách biệt)
+### 1.2 Kiến trúc Mới (Separated - Tách biệt)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
