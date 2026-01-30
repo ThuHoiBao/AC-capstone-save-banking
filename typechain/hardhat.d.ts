@@ -94,9 +94,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DepositCertificate__factory>;
     getContractFactory(
+      name: "DepositVault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DepositVault__factory>;
+    getContractFactory(
       name: "IDepositCertificate",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IDepositCertificate__factory>;
+    getContractFactory(
+      name: "IDepositVault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IDepositVault__factory>;
     getContractFactory(
       name: "ISavingCore",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -109,10 +117,6 @@ declare module "hardhat/types/runtime" {
       name: "IVaultManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IVaultManager__factory>;
-    getContractFactory(
-      name: "SavingCore",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SavingCore__factory>;
     getContractFactory(
       name: "SavingLogic",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -227,10 +231,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.DepositCertificate>;
     getContractAt(
+      name: "DepositVault",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DepositVault>;
+    getContractAt(
       name: "IDepositCertificate",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.IDepositCertificate>;
+    getContractAt(
+      name: "IDepositVault",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IDepositVault>;
     getContractAt(
       name: "ISavingCore",
       address: string | ethers.Addressable,
@@ -246,11 +260,6 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.IVaultManager>;
-    getContractAt(
-      name: "SavingCore",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.SavingCore>;
     getContractAt(
       name: "SavingLogic",
       address: string | ethers.Addressable,
@@ -348,9 +357,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.DepositCertificate>;
     deployContract(
+      name: "DepositVault",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DepositVault>;
+    deployContract(
       name: "IDepositCertificate",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IDepositCertificate>;
+    deployContract(
+      name: "IDepositVault",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IDepositVault>;
     deployContract(
       name: "ISavingCore",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -363,10 +380,6 @@ declare module "hardhat/types/runtime" {
       name: "IVaultManager",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IVaultManager>;
-    deployContract(
-      name: "SavingCore",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.SavingCore>;
     deployContract(
       name: "SavingLogic",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -481,10 +494,20 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.DepositCertificate>;
     deployContract(
+      name: "DepositVault",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DepositVault>;
+    deployContract(
       name: "IDepositCertificate",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IDepositCertificate>;
+    deployContract(
+      name: "IDepositVault",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IDepositVault>;
     deployContract(
       name: "ISavingCore",
       args: any[],
@@ -500,11 +523,6 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IVaultManager>;
-    deployContract(
-      name: "SavingCore",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.SavingCore>;
     deployContract(
       name: "SavingLogic",
       args: any[],

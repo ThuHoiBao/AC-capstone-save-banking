@@ -1,19 +1,19 @@
 {
   "id": 4,
-  "image": "/images/plans/dn2.jpg",
-  "name": "Flexible Saver (7d)",
-  "description": "Short-term, high-liquidity savings plan",
+  "name": "Plan Pro Max",
+  "description": "Hot plan Pro Max",
   "features": [
-    "Low minimum deposit",
-    "Quick maturity",
-    "Flexible terms",
-    "Daily liquidity"
+    "Features 1",
+    "Features 2",
+    "Features 3"
   ],
-  "riskLevel": "Low",
+  "riskLevel": "High",
   "recommended": [
-    "beginners",
-    "short-term savers"
+    "Recommended For 1",
+    "Recommended For 2",
+    "Recommended For 23"
   ],
-  "color": "#10B981",
+  "image": "/images/plans/plan-new.jpg",
+  "color": "#1968e6",
   "enabled": true
 }

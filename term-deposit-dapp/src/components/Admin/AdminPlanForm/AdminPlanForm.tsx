@@ -61,8 +61,19 @@ export const AdminPlanForm: React.FC<AdminPlanFormProps> = ({
   useEffect(() => {
     if (editingPlan) {
       const metadata = editingPlan.metadata;
+      const tenorSeconds = Number(editingPlan.tenorSeconds);
+      const tenorDays = tenorSeconds / 86400;
+      
+      console.log('📝 [AdminPlanForm] Editing plan:', {
+        planId: editingPlan.planId.toString(),
+        tenorSeconds,
+        tenorDays,
+        hours: tenorDays * 24,
+        minutes: tenorDays * 24 * 60
+      });
+      
       setFormData({
-        tenorDays: Number(editingPlan.tenorSeconds) / 86400,
+        tenorDays,
         aprBps: Number(editingPlan.aprBps),
         minDeposit: Number(editingPlan.minDeposit) / 1e6,
         maxDeposit: Number(editingPlan.maxDeposit) / 1e6,
@@ -215,11 +226,24 @@ export const AdminPlanForm: React.FC<AdminPlanFormProps> = ({
                 <label>Tenor Period (Days)</label>
                 <input
                   type="number"
+                  step="0.001"
                   value={formData.tenorDays}
                   onChange={(e) => setFormData({ ...formData, tenorDays: Number(e.target.value) })}
                   required
-                  min="1"
+                  min="0.001"
                 />
+                <span className={styles.hint}>
+                  {formData.tenorDays >= 1 
+                    ? `${Math.floor(formData.tenorDays)} days` 
+                    : formData.tenorDays >= 1/24 
+                    ? `${Math.floor(formData.tenorDays * 24)} hours`
+                    : formData.tenorDays >= 1/(24*60)
+                    ? `${Math.floor(formData.tenorDays * 24 * 60)} minutes`
+                    : `${Math.floor(formData.tenorDays * 24 * 60 * 60)} seconds`
+                  }
+                  {' | '}
+                  {Math.floor(formData.tenorDays * 24 * 60 * 60)} seconds
+                </span>
               </div>
 
               <div className={styles.field}>

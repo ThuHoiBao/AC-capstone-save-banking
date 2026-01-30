@@ -6,7 +6,10 @@
 import React, { useEffect, useState } from 'react';
 import { useWallet } from '../../../context/WalletContext';
 import { useNFT } from '../../../hooks/useNFT';
-import type { Certificate } from '../../../types';
+import { useDeposit } from '../../../hooks/useDeposit';
+import { DataAggregator } from '../../../services/dataAggregator';
+import { getDepositState } from '../../../utils/time';
+import type { Certificate, Deposit } from '../../../types';
 import { Award, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../../common/Button/Button';
 import styles from './NFTGallery.module.scss';
@@ -14,7 +17,9 @@ import styles from './NFTGallery.module.scss';
 export const NFTGallery: React.FC = () => {
   const { address, isConnected } = useWallet();
   const { getUserCertificates } = useNFT();
+  const { fetchUserDeposits } = useDeposit();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  // Note: deposits Map is managed in child components, not needed here
   const [loading, setLoading] = useState(true);
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
 
@@ -28,12 +33,36 @@ export const NFTGallery: React.FC = () => {
     if (!address) return;
     
     setLoading(true);
-    const certs = await getUserCertificates(address);
+    
+    // Load certificates and deposits in parallel
+    const [certs, userDeposits] = await Promise.all([
+      getUserCertificates(address),
+      fetchUserDeposits()
+    ]);
     
     console.log('🎨 Loaded certificates:', certs);
+    console.log('💰 Loaded deposits:', userDeposits);
+    
+    // Create deposit map by tokenId
+    const depositMap = new Map<string, Deposit>();
+    userDeposits.forEach(deposit => {
+      depositMap.set(deposit.depositId.toString(), deposit);
+    });
+    // Note: depositMap used locally here, not stored in state
     
     // Generate base64 encoded SVG for each certificate
     const certsWithImages = certs.map(cert => {
+      const deposit = depositMap.get(cert.tokenId.toString());
+      const gracePeriod = 259200; // 3 days
+      const state = deposit ? getDepositState(
+        Number(deposit.core.startAt),
+        Number(deposit.core.maturityAt),
+        Number(deposit.core.status),
+        gracePeriod
+      ) : null;
+      
+      const statusText = state?.statusName || DataAggregator.getStatusLabel(deposit?.core.status ?? 0);
+      
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
   <defs>
     <linearGradient id="grad${cert.tokenId}" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -60,6 +89,7 @@ export const NFTGallery: React.FC = () => {
       console.log(`📄 Certificate #${cert.tokenId}:`, {
         hasMetadata: !!cert.metadata,
         hasImage: !!cert.metadata?.image,
+        status: statusText,
         generatedImage: base64Svg.substring(0, 50) + '...'
       });
       
@@ -69,9 +99,10 @@ export const NFTGallery: React.FC = () => {
           name: `Term Deposit Certificate #${cert.tokenId}`,
           description: 'Certificate of ownership for a term deposit in the decentralized savings protocol',
           image: base64Svg,
+          external_url: getEtherscanUrl(cert.tokenId),
           attributes: [
             { trait_type: 'Certificate ID', value: cert.tokenId.toString() },
-            { trait_type: 'Status', value: 'Active' },
+            { trait_type: 'Status', value: statusText },
             { trait_type: 'Type', value: 'Savings Certificate' }
           ]
         }

@@ -4,6 +4,7 @@ import { useDeposit } from '../../../hooks/useDeposit';
 import { DataAggregator } from '../../../services/dataAggregator';
 import type { Plan } from '../../../types';
 import { formatUSDC, formatAPR, formatPenalty } from '../../../utils/formatters';
+import { formatDuration } from '../../../utils/time';
 import { calculateMaturityAmount } from '../../../utils/calculator';
 import { Button } from '../../common/Button/Button';
 import styles from './PlanList.module.scss';
@@ -45,42 +46,51 @@ export const PlanList: React.FC = () => {
       <h2 className={styles.title}>Available Saving Plans</h2>
       
       <div className={styles.grid}>
-        {plans.map((plan) => (
-          <div key={plan.planId.toString()} className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>{DataAggregator.tenorSecondsToDays(Number(plan.tenorSeconds))} Days</h3>
-              <div className={styles.apr}>{formatAPR(plan.aprBps)}</div>
-            </div>
-            
-            <div className={styles.cardBody}>
-              <div className={styles.info}>
-                <span className={styles.label}>Min Deposit:</span>
-                <span className={styles.value}>
-                  {plan.minDeposit > 0 ? `${formatUSDC(plan.minDeposit)} USDC` : 'No minimum'}
-                </span>
+        {plans.map((plan) => {
+          const durationText = formatDuration(Number(plan.tenorSeconds));
+          
+          return (
+            <div key={plan.planId.toString()} className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>{plan.metadata?.name || `Plan #${plan.planId}`}</h3>
+                <div className={styles.apr}>{formatAPR(plan.aprBps)}</div>
               </div>
               
-              <div className={styles.info}>
-                <span className={styles.label}>Max Deposit:</span>
-                <span className={styles.value}>
-                  {plan.maxDeposit > 0 ? `${formatUSDC(plan.maxDeposit)} USDC` : 'No maximum'}
-                </span>
+              <div className={styles.cardBody}>
+                <div className={styles.info}>
+                  <span className={styles.label}>Duration:</span>
+                  <span className={styles.value}>{durationText}</span>
+                </div>
+                
+                <div className={styles.info}>
+                  <span className={styles.label}>Min Deposit:</span>
+                  <span className={styles.value}>
+                    {plan.minDeposit > 0 ? `${formatUSDC(plan.minDeposit)} USDC` : 'No minimum'}
+                  </span>
+                </div>
+                
+                <div className={styles.info}>
+                  <span className={styles.label}>Max Deposit:</span>
+                  <span className={styles.value}>
+                    {plan.maxDeposit > 0 ? `${formatUSDC(plan.maxDeposit)} USDC` : 'No maximum'}
+                  </span>
+                </div>
+                
+                <div className={styles.info}>
+                  <span className={styles.label}>Early Penalty:</span>
+                  <span className={styles.value}>{formatPenalty(plan.earlyWithdrawPenaltyBps)}</span>
+                </div>
               </div>
               
-              <div className={styles.info}>
-                <span className={styles.label}>Early Penalty:</span>
-                <span className={styles.value}>{formatPenalty(plan.earlyWithdrawPenaltyBps)}</span>
-              </div>
+              <Button
+                fullWidth
+                onClick={() => openDepositModal(plan)}
+              >
+                Deposit
+              </Button>
             </div>
-            
-            <Button
-              fullWidth
-              onClick={() => openDepositModal(plan)}
-            >
-              Deposit
-            </Button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {showModal && selectedPlan && (

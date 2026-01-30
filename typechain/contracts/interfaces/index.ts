@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { IDepositCertificate } from "./IDepositCertificate";
+export type { IDepositVault } from "./IDepositVault";
 export type { ISavingCore } from "./ISavingCore";
 export type { ISavingLogic } from "./ISavingLogic";
 export type { IVaultManager } from "./IVaultManager";

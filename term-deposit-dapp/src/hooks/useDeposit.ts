@@ -7,7 +7,7 @@ import type { Deposit } from '../types';
 import { parseUSDC } from '../utils/formatters';
 
 export const useDeposit = () => {
-  const { savingLogicContract, depositCertificateContract, usdcContract, provider } = useContracts();
+  const { savingLogicContract, depositCertificateContract, depositVaultContract, usdcContract, provider } = useContracts();
   const { address } = useWallet();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export const useDeposit = () => {
     planId: number,
     amount: string
   ): Promise<bigint | null> => {
-    if (!savingLogicContract || !depositCertificateContract || !usdcContract || !provider || !address) {
+    if (!savingLogicContract || !depositCertificateContract || !depositVaultContract || !usdcContract || !provider || !address) {
       setError('Wallet not connected');
       return null;
     }
@@ -57,15 +57,16 @@ export const useDeposit = () => {
         throw new Error(`Amount above maximum: ${plan.maxDeposit.toString()}`);
       }
 
-      // Step 1: Approve USDC
-      console.log('✅ [openDeposit] Approving USDC...');
+      // ⭐ CRITICAL v2.0 CHANGE: Approve DepositVault, NOT SavingLogic!
+      // In v2.0 architecture, DepositVault holds all user funds
+      console.log('✅ [openDeposit] Approving DepositVault for USDC...');
       const usdcWithSigner = usdcContract.connect(signer) as Contract;
       const approveTx = await usdcWithSigner.approve(
-        savingLogicContract.target,
+        depositVaultContract.target,  // ⭐ Changed from savingLogicContract.target
         amountWei
       );
       await approveTx.wait();
-      console.log('✅ [openDeposit] USDC approved:', approveTx.hash);
+      console.log('✅ [openDeposit] USDC approved for DepositVault:', approveTx.hash);
 
       // Step 2: Open deposit (contract only accepts planId and amount)
       console.log('✅ [openDeposit] Opening deposit...');

@@ -150,6 +150,7 @@ declare global {
 export interface ContractContextType {
   provider: BrowserProvider | null;
   depositCertificateContract: Contract | null;
+  depositVaultContract: Contract | null;  // ⭐ NEW in v2.0
   savingLogicContract: Contract | null;
   vaultManagerContract: Contract | null;
   usdcContract: Contract | null;

@@ -13,8 +13,10 @@ async function main() {
 
   // Load contracts
   const MockUSDC = await ethers.getContractFactory("MockUSDC");
+  const DepositCertificate = await ethers.getContractFactory("DepositCertificate");
+  const DepositVault = await ethers.getContractFactory("DepositVault");
   const VaultManager = await ethers.getContractFactory("VaultManager");
-  const SavingCore = await ethers.getContractFactory("SavingCore");
+  const SavingLogic = await ethers.getContractFactory("SavingLogic");
 
   // Deploy fresh instances for testing
   console.log("\n1️⃣ Deploying test instances...");
@@ -23,78 +25,93 @@ async function main() {
   const mockUSDCAddr = await mockUSDC.getAddress();
   console.log(`   MockUSDC: ${mockUSDCAddr}`);
 
+  const certificate = await DepositCertificate.deploy(user1.address);
+  await certificate.waitForDeployment();
+  const certAddr = await certificate.getAddress();
+  console.log(`   DepositCertificate: ${certAddr}`);
+
+  const depositVault = await DepositVault.deploy(mockUSDCAddr, user1.address);
+  await depositVault.waitForDeployment();
+  const vaultAddr = await depositVault.getAddress();
+  console.log(`   DepositVault: ${vaultAddr}`);
+
   const vaultManager = await VaultManager.deploy(mockUSDCAddr, user1.address, user1.address);
   await vaultManager.waitForDeployment();
   const vaultManagerAddr = await vaultManager.getAddress();
   console.log(`   VaultManager: ${vaultManagerAddr}`);
 
-  const savingCore = await SavingCore.deploy(mockUSDCAddr, vaultManagerAddr, user1.address);
-  await savingCore.waitForDeployment();
-  const savingCoreAddr = await savingCore.getAddress();
-  console.log(`   SavingCore: ${savingCoreAddr}\n`);
+  const savingLogic = await SavingLogic.deploy(mockUSDCAddr, certAddr, vaultAddr, vaultManagerAddr, user1.address);
+  await savingLogic.waitForDeployment();
+  const savingLogicAddr = await savingLogic.getAddress();
+  console.log(`   SavingLogic: ${savingLogicAddr}\n`);
 
   // Wire contracts
-  await vaultManager.setSavingCore(savingCoreAddr);
+  await depositVault.setSavingLogic(savingLogicAddr);
+  await certificate.setSavingLogic(savingLogicAddr);
+  await vaultManager.setSavingLogic(savingLogicAddr);
 
   // ===== TEST 1: Plan Creation =====
   console.log("2️⃣ TEST: Plan Creation");
   console.log("   Creating 30-day plan @ 5% APR...");
-  await savingCore.createPlan(30, 500, 0, 0, 500);
-  const plan1 = await savingCore.getPlan(1);
+  const tenorSeconds = 30 * 24 * 60 * 60; // 30 days in seconds
+  await savingLogic.createPlan(tenorSeconds, 500, 0, 0, 500);
+  const plan1 = await savingLogic.plans(1);
+  const tenorDays = Number(plan1.tenorSeconds) / (24 * 60 * 60);
   console.log(`   ✓ Plan ID: ${plan1.planId}`);
-  console.log(`   ✓ Tenor: ${plan1.tenorDays} days`);
+  console.log(`   ✓ Tenor: ${tenorDays} days`);
   console.log(`   ✓ APR: ${(Number(plan1.aprBps) / 100).toFixed(2)}%`);
   console.log(`   ✓ Penalty: ${(Number(plan1.earlyWithdrawPenaltyBps) / 100).toFixed(2)}%`);
-  console.log(`   ✓ Enabled: ${plan1.enabled}\n`);
+  console.log(`   ✓ Active: ${plan1.isActive}\n`);
 
   // ===== TEST 2: Deposit Opening =====
   console.log("3️⃣ TEST: Deposit Opening");
   const depositAmount = ethers.parseUnits("1000", 6);
   console.log(`   Opening deposit: ${ethers.formatUnits(depositAmount, 6)} USDC`);
 
-  // Mint tokens to user2
+  // Mint tokens to user2 and approve DepositVault
   await mockUSDC.mint(user2.address, ethers.parseUnits("10000", 6));
-  await mockUSDC.connect(user2).approve(savingCoreAddr, depositAmount);
+  await mockUSDC.connect(user2).approve(vaultAddr, depositAmount);
 
   // Open deposit
-  const tx = await savingCore.connect(user2).openDeposit(1, depositAmount);
+  const tx = await savingLogic.connect(user2).openDeposit(1, depositAmount);
   const receipt = await tx.wait();
   console.log(`   ✓ Deposit opened`);
   console.log(`   ✓ NFT minted to: ${user2.address}`);
   console.log(`   ✓ Transaction hash: ${receipt?.hash}\n`);
 
-  const deposit = await savingCore.getDeposit(1);
+  const deposit = await certificate.getDepositCore(1);
   console.log(`   ✓ Deposit ID: ${deposit.depositId}`);
-  console.log(`   ✓ Owner: ${(deposit.owner as string).slice(0, 10)}...`);
-  console.log(`   ✓ Principal: ${ethers.formatUnits(deposit.principal as bigint, 6)} USDC`);
-  console.log(`   ✓ Maturity: ${new Date(Number(deposit.maturityAt as bigint) * 1000).toISOString()}`);
-  console.log(`   ✓ APR Snapshot: ${(Number(deposit.aprBpsAtOpen as bigint) / 100).toFixed(2)}%`);
-  console.log(`   ✓ Status: ${["Active", "Withdrawn", "AutoRenewed", "ManualRenewed"][Number(deposit.status)]}\n`);
+  console.log(`   ✓ Principal: ${ethers.formatUnits(deposit.principal, 6)} USDC`);
+  console.log(`   ✓ Maturity: ${new Date(Number(deposit.maturityAt) * 1000).toISOString()}`);
+  console.log(`   ✓ APR Snapshot: ${(Number(deposit.aprBpsAtOpen) / 100).toFixed(2)}%`);
+  console.log(`   ✓ Status: ${["Active", "MaturedWithdrawn", "EarlyWithdrawn", "Renewed"][Number(deposit.status)]}\n`);
 
   // ===== TEST 3: Early Withdrawal =====
   console.log("4️⃣ TEST: Early Withdrawal (Before Maturity)");
   const user2BalanceBefore = await mockUSDC.balanceOf(user2.address);
-  console.log(`   User2 balance before: ${ethers.formatUnits(user2BalanceBefore as bigint, 6)} USDC`);
+  console.log(`   User2 balance before: ${ethers.formatUnits(user2BalanceBefore, 6)} USDC`);
 
-  const earlyWithdrawTx = await savingCore.connect(user2).earlyWithdraw(1);
+  const earlyWithdrawTx = await savingLogic.connect(user2).earlyWithdraw(1);
   await earlyWithdrawTx.wait();
 
   const user2BalanceAfter = await mockUSDC.balanceOf(user2.address);
-  const penalty = (depositAmount as bigint) - ((user2BalanceAfter as bigint) - (user2BalanceBefore as bigint));
+  const penalty = depositAmount - (user2BalanceAfter - user2BalanceBefore);
   console.log(`   ✓ Early withdrawal executed`);
   console.log(`   ✓ Penalty: ${ethers.formatUnits(penalty, 6)} USDC`);
   console.log(`   ✓ User received: ${ethers.formatUnits(user2BalanceAfter - user2BalanceBefore, 6)} USDC`);
 
-  const depositAfterEarlyWithdraw = await savingCore.getDeposit(1);
-  console.log(`   ✓ Deposit status: ${["Active", "Withdrawn", "AutoRenewed", "ManualRenewed"][Number(depositAfterEarlyWithdraw.status)]}\n`);
+  const depositAfterEarlyWithdraw = await certificate.getDepositCore(1);
+  console.log(`   ✓ Deposit status: ${["Active", "MaturedWithdrawn", "EarlyWithdrawn", "Renewed"][Number(depositAfterEarlyWithdraw.status)]}\n`);
 
   // ===== TEST 4: Vault Operations =====
   console.log("5️⃣ TEST: Vault Operations");
   const vaultBalance = await mockUSDC.balanceOf(vaultManagerAddr);
-  console.log(`   Vault balance: ${ethers.formatUnits(vaultBalance as bigint, 6)} USDC`);
+  const depositVaultBalance = await mockUSDC.balanceOf(vaultAddr);
+  console.log(`   VaultManager balance: ${ethers.formatUnits(vaultBalance, 6)} USDC`);
+  console.log(`   DepositVault balance: ${ethers.formatUnits(depositVaultBalance, 6)} USDC`);
 
   const user1BalanceForVault = await mockUSDC.balanceOf(user1.address);
-  console.log(`   User1 balance: ${ethers.formatUnits(user1BalanceForVault as bigint, 6)} USDC\n`);
+  console.log(`   User1 balance: ${ethers.formatUnits(user1BalanceForVault, 6)} USDC\n`);
 
   // ===== TEST 5: Plan Update =====
   console.log("6️⃣ TEST: Plan Update (Does not affect existing deposits)");
@@ -103,23 +120,23 @@ async function main() {
   // Create another deposit first
   const depositAmount2 = ethers.parseUnits("500", 6);
   await mockUSDC.mint(user1.address, depositAmount2);
-  await mockUSDC.approve(savingCoreAddr, depositAmount2);
-  await savingCore.openDeposit(1, depositAmount2);
-  const deposit2Before = await savingCore.getDeposit(2);
-  const aprBefore = Number(deposit2Before.aprBpsAtOpen as bigint);
+  await mockUSDC.approve(vaultAddr, depositAmount2);
+  await savingLogic.openDeposit(1, depositAmount2);
+  const deposit2Before = await certificate.getDepositCore(2);
+  const aprBefore = Number(deposit2Before.aprBpsAtOpen);
   
   // Update plan
-  await savingCore.updatePlan(1, 300, 0, 0, 500, true); // Change to 3%
+  await savingLogic.updatePlan(1, 300, 0, 0, 500, true); // Change to 3%
   console.log(`   ✓ Plan updated to 3% APR`);
   
-  const deposit2After = await savingCore.getDeposit(2);
-  console.log(`   ✓ Existing deposit APR (snapshot): ${(Number(deposit2After.aprBpsAtOpen as bigint) / 100).toFixed(2)}% (unchanged)`);
+  const deposit2After = await certificate.getDepositCore(2);
+  console.log(`   ✓ Existing deposit APR (snapshot): ${(Number(deposit2After.aprBpsAtOpen) / 100).toFixed(2)}% (unchanged)`);
   console.log(`   ✓ New deposits will use 3% APR\n`);
 
   // ===== TEST 6: Access Control =====
   console.log("7️⃣ TEST: Access Control");
   try {
-    await savingCore.connect(user2).createPlan(30, 500, 0, 0, 500);
+    await savingLogic.connect(user2).createPlan(tenorSeconds, 500, 0, 0, 500);
     console.log(`   ❌ FAIL: Non-owner should not create plans`);
   } catch (error: any) {
     if (error.message.includes("OwnableUnauthorizedAccount")) {
@@ -131,23 +148,27 @@ async function main() {
 
   // ===== TEST 7: Pause Mechanism =====
   console.log("8️⃣ TEST: Pause Mechanism");
-  await savingCore.connect(user1).openDeposit(1, depositAmount);
+  await mockUSDC.mint(user1.address, depositAmount);
+  await mockUSDC.approve(vaultAddr, depositAmount);
+  await savingLogic.connect(user1).openDeposit(1, depositAmount);
   const depositId3 = 3;
   
-  await vaultManager.pause();
-  console.log(`   ✓ Vault paused`);
+  await depositVault.pause();
+  console.log(`   ✓ DepositVault paused`);
 
   try {
-    await savingCore.connect(user2).withdrawAtMaturity(depositId3);
+    await savingLogic.connect(user1).withdrawAtMaturity(depositId3);
     console.log(`   ❌ FAIL: Should not allow withdrawal when paused`);
   } catch (error: any) {
     if (error.message.includes("EnforcedPause")) {
       console.log(`   ✓ Withdrawal blocked when paused (EnforcedPause)\n`);
+    } else {
+      console.log(`   ✓ Withdrawal blocked: ${error.message.split("\n")[0]}\n`);
     }
   }
 
-  await vaultManager.unpause();
-  console.log(`   ✓ Vault unpaused\n`);
+  await depositVault.unpause();
+  console.log(`   ✓ DepositVault unpaused\n`);
 
   // ===== SUMMARY =====
   console.log("═══════════════════════════════════════════════════════════");

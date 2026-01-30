@@ -72,57 +72,69 @@ export class DataAggregator {
 
   /**
    * Get plan count from blockchain
+   * Query plans sequentially until we find one that doesn't exist
    */
   static async getPlanCount(savingLogicContract: Contract): Promise<number> {
     try {
-      // Try to get nextPlanId - 1 to count existing plans
-      // We'll query until we find a non-existent plan
       let count = 0;
-      for (let i = 1; i <= 100; i++) {
+      const MAX_PLANS = 100; // Safety limit
+      
+      for (let i = 1; i <= MAX_PLANS; i++) {
         try {
-          const plan = await savingLogicContract.getPlan(i);
+          const plan = await savingLogicContract.plans(i);
+          
+          // Check if plan exists (planId will be 0 if not exists)
           if (plan && plan.planId !== 0n) {
             count = i;
           } else {
+            // Found non-existent plan, stop searching
             break;
           }
         } catch {
+          // Error reading plan, assume we've reached the end
           break;
         }
       }
+      
       console.log(`📊 [DataAggregator] Found ${count} plans on blockchain`);
       return count;
     } catch (error) {
       console.error('❌ [DataAggregator] Error getting plan count:', error);
-      return 6; // Fallback to 6
+      return 0;
     }
   }
 
   /**
    * Get all plans (parallel fetching with error handling)
+   * Load ALL plans dynamically from blockchain
    */
   static async getAllPlans(savingLogicContract: Contract): Promise<Plan[]> {
     const plans: Plan[] = [];
     
-    // Get dynamic plan count from blockchain
-    const MAX_PLANS = await this.getPlanCount(savingLogicContract);
+    // Get plan count from blockchain
+    const planCount = await this.getPlanCount(savingLogicContract);
+    
+    if (planCount === 0) {
+      console.warn('⚠️  [DataAggregator] No plans found on blockchain');
+      return [];
+    }
 
-    console.log(`📋 [DataAggregator] Querying ${MAX_PLANS} plans from blockchain...`);
+    console.log(`📋 [DataAggregator] Found ${planCount} plans on blockchain, loading all...`);
 
-    // Fetch plans in parallel with individual error handling
-    const promises = Array.from({ length: MAX_PLANS }, async (_, i) => {
+    // Fetch ALL plans from 1 to planCount in parallel
+    const promises = Array.from({ length: planCount }, (_, i) => i + 1).map(async (planId) => {
       try {
-        const plan = await this.getFullPlan(savingLogicContract, i + 1);
+        const plan = await this.getFullPlan(savingLogicContract, planId);
         return plan; // May be null if plan doesn't exist
       } catch (error) {
-        // Silently ignore errors (plan doesn't exist)
+        console.warn(`⚠️  Failed to load plan ${planId}:`, error);
         return null;
       }
     });
 
     const results = await Promise.all(promises);
 
-    // Filter out null results (non-existent plans)
+    // Filter out null results
     for (const plan of results) {
       if (plan && plan.planId !== 0n) {
         plans.push(plan);

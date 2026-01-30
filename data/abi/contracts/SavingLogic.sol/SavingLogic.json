@@ -13,6 +13,11 @@
             },
             {
                 "internalType": "address",
+                "name": "depositVaultAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
                 "name": "vaultManagerAddress",
                 "type": "address"
             },
@@ -396,6 +401,19 @@
             }
         ],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "depositVault",
+        "outputs": [
+            {
+                "internalType": "contract IDepositVault",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

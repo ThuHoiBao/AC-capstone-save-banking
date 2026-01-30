@@ -74,10 +74,11 @@ async function main() {
   for (let i = 0; i < 20; i++) {
     try {
       const plan = await savingCore.getPlan(i);
-      if (Number(plan.tenorDays) > 0) {
+      const tenorDays = Number(plan.tenorSeconds) / (24 * 60 * 60);
+      if (tenorDays > 0) {
         plans.push({
           id: i,
-          tenor: Number(plan.tenorDays),
+          tenor: tenorDays,
           apr: Number(plan.aprBps) / 100,
           min: ethers.formatUnits(plan.minDeposit, 6),
           max: plan.maxDeposit > 0 ? ethers.formatUnits(plan.maxDeposit, 6) : "∞",

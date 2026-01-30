@@ -1,12 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { DepositCertificate, SavingLogic, VaultManager, MockUSDC } from "../typechain";
+import { DepositCertificate, SavingLogic, VaultManager, MockUSDC, DepositVault } from "../typechain";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("SavingLogic", function () {
   let certificate: DepositCertificate;
   let savingLogic: SavingLogic;
+  let depositVault: DepositVault;
   let vaultManager: VaultManager;
   let usdc: MockUSDC;
   let owner: SignerWithAddress;
@@ -27,6 +28,12 @@ describe("SavingLogic", function () {
     const CertificateFactory = await ethers.getContractFactory("DepositCertificate");
     certificate = await CertificateFactory.deploy(owner.address, METADATA_BASE_URI);
 
+    const DepositVaultFactory = await ethers.getContractFactory("DepositVault");
+    depositVault = await DepositVaultFactory.deploy(
+      await usdc.getAddress(),
+      owner.address
+    );
+
     const VaultFactory = await ethers.getContractFactory("VaultManager");
     vaultManager = await VaultFactory.deploy(
       await usdc.getAddress(),
@@ -38,11 +45,13 @@ describe("SavingLogic", function () {
     savingLogic = await LogicFactory.deploy(
       await usdc.getAddress(),
       await certificate.getAddress(),
+      await depositVault.getAddress(),
       await vaultManager.getAddress(),
       owner.address
     );
 
     // Configure
+    await depositVault.setSavingLogic(await savingLogic.getAddress());
     await certificate.setSavingLogic(await savingLogic.getAddress());
     await vaultManager.setSavingLogic(await savingLogic.getAddress());
 
@@ -142,7 +151,7 @@ describe("SavingLogic", function () {
 
     it("Should open deposit successfully", async function () {
       const amount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
 
       const startTime = await time.latest();
       
@@ -162,13 +171,13 @@ describe("SavingLogic", function () {
       expect(depositCore.penaltyBpsAtOpen).to.equal(300);
       expect(depositCore.status).to.equal(0); // Active
 
-      // Check tokens transferred
-      expect(await usdc.balanceOf(await savingLogic.getAddress())).to.equal(amount);
+      // Check tokens transferred to DepositVault (v2.0 architecture)
+      expect(await usdc.balanceOf(await depositVault.getAddress())).to.equal(amount);
     });
 
     it("Should snapshot APR and penalty at open", async function () {
       const amount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
       await savingLogic.connect(user1).openDeposit(planId, amount);
 
       // Update plan rates
@@ -182,7 +191,7 @@ describe("SavingLogic", function () {
 
     it("Should reject amount below minimum", async function () {
       const amount = ethers.parseUnits("50", 6); // Below 100 min
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
 
       await expect(savingLogic.connect(user1).openDeposit(planId, amount))
         .to.be.revertedWithCustomError(savingLogic, "AmountBelowMinimum");
@@ -190,7 +199,7 @@ describe("SavingLogic", function () {
 
     it("Should reject amount above maximum", async function () {
       const amount = ethers.parseUnits("15000", 6); // Above 10000 max
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
 
       await expect(savingLogic.connect(user1).openDeposit(planId, amount))
         .to.be.revertedWithCustomError(savingLogic, "AmountAboveMaximum");
@@ -200,7 +209,7 @@ describe("SavingLogic", function () {
       await savingLogic.updatePlan(planId, 720, 0, 0, 300, false); // Disable
 
       const amount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
 
       await expect(savingLogic.connect(user1).openDeposit(planId, amount))
         .to.be.revertedWithCustomError(savingLogic, "PlanNotActive");
@@ -208,7 +217,7 @@ describe("SavingLogic", function () {
 
     it("Should reject non-existent plan", async function () {
       const amount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
 
       await expect(savingLogic.connect(user1).openDeposit(999n, amount))
         .to.be.revertedWithCustomError(savingLogic, "PlanNotFound");
@@ -218,12 +227,12 @@ describe("SavingLogic", function () {
       await savingLogic.createPlan(180 * DAY, 800, 0, 0, 300); // No limits
       
       const amount = ethers.parseUnits("1", 6); // Very small
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), amount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), amount);
       await savingLogic.connect(user1).openDeposit(2n, amount); // Should work
 
       const largeAmount = ethers.parseUnits("100000", 6); // Very large
       await usdc.mint(user1.address, largeAmount);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), largeAmount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), largeAmount);
       await savingLogic.connect(user1).openDeposit(2n, largeAmount); // Should also work
     });
   });
@@ -236,7 +245,7 @@ describe("SavingLogic", function () {
       await savingLogic.createPlan(90 * DAY, 720, ethers.parseUnits("100", 6), 0, 300);
       
       principal = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), principal);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), principal);
       await savingLogic.connect(user1).openDeposit(1n, principal);
       depositId = 1n;
     });
@@ -309,7 +318,7 @@ describe("SavingLogic", function () {
       await savingLogic.createPlan(90 * DAY, 720, ethers.parseUnits("100", 6), 0, 300);
       
       principal = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), principal);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), principal);
       await savingLogic.connect(user1).openDeposit(1n, principal);
       depositId = 1n;
     });
@@ -385,7 +394,7 @@ describe("SavingLogic", function () {
       await savingLogic.createPlan(180 * DAY, 800, ethers.parseUnits("100", 6), 0, 400);
       
       principal = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), principal);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), principal);
       await savingLogic.connect(user1).openDeposit(1n, principal);
       oldDepositId = 1n;
     });
@@ -429,13 +438,13 @@ describe("SavingLogic", function () {
     it("Should compound interest correctly", async function () {
       await time.increase(91 * DAY);
 
-      const balanceBefore = await usdc.balanceOf(await savingLogic.getAddress());
+      const balanceBefore = await usdc.balanceOf(await depositVault.getAddress());
 
       await savingLogic.connect(user1).renewDeposit(oldDepositId, 1n);
 
-      const balanceAfter = await usdc.balanceOf(await savingLogic.getAddress());
+      const balanceAfter = await usdc.balanceOf(await depositVault.getAddress());
 
-      // Logic contract should receive interest from vault
+      // DepositVault should hold compound principal (principal + interest)
       const expectedInterest = (principal * 720n * (90n * BigInt(DAY))) / (365n * BigInt(DAY) * 10000n);
       expect(balanceAfter - balanceBefore).to.equal(expectedInterest);
 
@@ -482,7 +491,7 @@ describe("SavingLogic", function () {
       await savingLogic.createPlan(90 * DAY, 720, ethers.parseUnits("100", 6), 0, 300);
       
       principal = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), principal);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), principal);
       await savingLogic.connect(user1).openDeposit(1n, principal);
       depositId = 1n;
     });

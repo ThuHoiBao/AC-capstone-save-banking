@@ -93,6 +93,7 @@ export interface SavingLogicInterface extends Interface {
       | "autoRenewDeposit"
       | "certificate"
       | "createPlan"
+      | "depositVault"
       | "earlyWithdraw"
       | "getDepositCore"
       | "getPlan"
@@ -138,6 +139,10 @@ export interface SavingLogicInterface extends Interface {
       BigNumberish,
       BigNumberish
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "depositVault",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "earlyWithdraw",
@@ -211,6 +216,10 @@ export interface SavingLogicInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "createPlan", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "depositVault",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "earlyWithdraw",
     data: BytesLike
@@ -478,6 +487,8 @@ export interface SavingLogic extends BaseContract {
     "nonpayable"
   >;
 
+  depositVault: TypedContractMethod<[], [string], "view">;
+
   earlyWithdraw: TypedContractMethod<
     [depositId: BigNumberish],
     [[bigint, bigint] & { principalAfterPenalty: bigint; penalty: bigint }],
@@ -595,6 +606,9 @@ export interface SavingLogic extends BaseContract {
     [bigint],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "depositVault"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "earlyWithdraw"
   ): TypedContractMethod<

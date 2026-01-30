@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useDeposit } from '../../../hooks/useDeposit';
-import { usePlans } from '../../../hooks/usePlans';
 import { useContracts } from '../../../context/ContractContext';
 import { useWallet } from '../../../context/WalletContext';
 import { DataAggregator } from '../../../services/dataAggregator';
-import type { Deposit, Plan } from '../../../types';
+import type { Deposit } from '../../../types';
 import { formatUSDC, formatDate } from '../../../utils/formatters';
+import { formatDuration, getDepositState } from '../../../utils/time';
 import { Button } from '../../common/Button/Button';
 import { TrendingUp, Clock, CheckCircle, DollarSign, AlertCircle, RotateCcw, Award } from 'lucide-react';
 import styles from './MyDeposits.module.scss';
 
 export const MyDeposits: React.FC = () => {
   const { fetchUserDeposits, withdrawAtMaturity, earlyWithdraw, renewDeposit, loading } = useDeposit();
-  const { getPlan } = usePlans();
   const { savingLogicContract, depositCertificateContract } = useContracts();
   const { address } = useWallet();
   const [deposits, setDeposits] = useState<Deposit[]>([]);
-  const [plans, setPlans] = useState<Map<string, Plan>>(new Map());
+  // Note: plans Map no longer needed - using deposit's stored APR/tenor values
   const [loadingDeposits, setLoadingDeposits] = useState(true);
 
   useEffect(() => {
@@ -44,15 +43,7 @@ export const MyDeposits: React.FC = () => {
     console.log(`📊 [MyDeposits] Received ${userDeposits.length} deposits`);
     setDeposits(userDeposits);
 
-    // Fetch plan details for each deposit
-    const planMap = new Map<string, Plan>();
-    for (const deposit of userDeposits) {
-      const plan = await getPlan(Number(deposit.core.planId));
-      if (plan) {
-        planMap.set(deposit.core.planId.toString(), plan);
-      }
-    }
-    setPlans(planMap);
+    // Note: No longer need to fetch plan details - using deposit's stored APR/tenor
     setLoadingDeposits(false);
     console.log('✅ [MyDeposits] Deposits loaded');
   };
@@ -88,17 +79,27 @@ export const MyDeposits: React.FC = () => {
   };
 
   const getStatusCategory = (deposit: Deposit): string => {
-    const now = Math.floor(Date.now() / 1000);
-    const maturityTime = Number(deposit.core.maturityAt);
-    const status = deposit.core.status;
+    const gracePeriod = 259200; // 3 days in seconds
+    const state = getDepositState(
+      Number(deposit.core.startAt),
+      Number(deposit.core.maturityAt),
+      Number(deposit.core.status),
+      gracePeriod
+    );
 
-    if (status === 1 || status === 2) return 'withdrawn'; // MaturedWithdrawn or EarlyWithdrawn
-    if (status === 3) return 'renewed'; // Renewed
-    if (status === 0) {
-      // Active
-      if (now >= maturityTime) return 'matured';
-      return 'active';
+    // Map state type to category
+    if (state.type === 'closed') {
+      if (state.statusName === 'MaturedWithdrawn' || state.statusName === 'EarlyWithdrawn') {
+        return 'withdrawn';
+      }
+      if (state.statusName === 'ManualRenewed' || state.statusName === 'AutoRenewed') {
+        return 'renewed';
+      }
     }
+    if (state.type === 'at_maturity') return 'matured';
+    if (state.type === 'after_grace') return 'auto_renew_required';
+    if (state.type === 'before_maturity') return 'active';
+    
     return 'active';
   };
 
@@ -126,6 +127,7 @@ export const MyDeposits: React.FC = () => {
   const groupedDeposits = {
     active: deposits.filter(d => getStatusCategory(d) === 'active'),
     matured: deposits.filter(d => getStatusCategory(d) === 'matured'),
+    auto_renew_required: deposits.filter(d => getStatusCategory(d) === 'auto_renew_required'),
     withdrawn: deposits.filter(d => getStatusCategory(d) === 'withdrawn'),
     renewed: deposits.filter(d => getStatusCategory(d) === 'renewed'),
   };
@@ -163,16 +165,21 @@ export const MyDeposits: React.FC = () => {
   }
 
   const renderDepositCard = (deposit: Deposit, statusCategory: string) => {
-    const plan = plans.get(deposit.core.planId.toString());
+    // Note: plan variable not needed - using deposit's stored APR and tenor values
     const maturityTime = Number(deposit.core.maturityAt);
     const startTime = Number(deposit.core.startAt);
-    const now = Math.floor(Date.now() / 1000);
-    const daysLeft = Math.max(0, Math.ceil((maturityTime - now) / 86400));
+    const gracePeriod = 259200; // 3 days in seconds
     
-    // Calculate interest (ensure BigInt types with explicit conversion)
+    // Get deposit state
+    const state = getDepositState(startTime, maturityTime, Number(deposit.core.status), gracePeriod);
+    
+    // Calculate interest using the deposit's stored APR and tenor (at time of opening)
+    // This is more reliable than fetching from plan which might not load
     const principal = BigInt(deposit.core.principal.toString());
-    const aprBps = plan?.aprBps ? BigInt(plan.aprBps.toString()) : 0n;
-    const tenorSeconds = plan?.tenorSeconds ? BigInt(plan.tenorSeconds.toString()) : 0n;
+    const aprBps = BigInt(deposit.core.aprBpsAtOpen.toString());
+    
+    // Calculate tenor from deposit times
+    const tenorSeconds = BigInt(Number(deposit.core.maturityAt) - Number(deposit.core.startAt));
     
     const interest = DataAggregator.calculateInterest(
       principal,
@@ -180,6 +187,9 @@ export const MyDeposits: React.FC = () => {
       tenorSeconds
     );
     const maturityAmount = principal + interest;
+    
+    // Get duration text
+    const durationText = formatDuration(Number(tenorSeconds));
 
     return (
       <div key={deposit.depositId.toString()} className={`${styles.card} ${styles[statusCategory]}`}>
@@ -188,15 +198,25 @@ export const MyDeposits: React.FC = () => {
             <span className={`${styles.badge} ${styles[`badge_${statusCategory}`]}`}>
               {statusCategory === 'active' && <Clock size={14} />}
               {statusCategory === 'matured' && <AlertCircle size={14} />}
+              {statusCategory === 'auto_renew_required' && <AlertCircle size={14} />}
               {statusCategory === 'withdrawn' && <CheckCircle size={14} />}
               {statusCategory === 'renewed' && <RotateCcw size={14} />}
-              {getStatusLabel(deposit.core.status)}
+              {state.statusName || getStatusLabel(deposit.core.status)}
             </span>
             <span className={styles.depositId}>
               <Award size={14} /> NFT #{deposit.depositId.toString()}
             </span>
           </div>
-          {statusCategory === 'active' && <span className={styles.daysLeft}>{daysLeft} days left</span>}
+          {state.timeToMaturity !== undefined && state.timeToMaturity > 0 && (
+            <span className={styles.daysLeft}>
+              {formatDuration(state.timeToMaturity)} left
+            </span>
+          )}
+          {state.graceTimeLeft !== undefined && state.graceTimeLeft > 0 && (
+            <span className={styles.daysLeft} style={{ color: '#ff9800' }}>
+              Grace: {formatDuration(state.graceTimeLeft)}
+            </span>
+          )}
         </div>
 
         {/* NFT Metadata Display */}
@@ -223,9 +243,7 @@ export const MyDeposits: React.FC = () => {
           </div>
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>Tenor</span>
-            <span className={styles.detailValue}>
-              {plan ? DataAggregator.tenorSecondsToDays(plan.tenorSeconds) : 0} days
-            </span>
+            <span className={styles.detailValue}>{durationText}</span>
           </div>
           <div className={styles.detailRow}>
             <span className={styles.detailLabel}>Early Penalty</span>
@@ -260,9 +278,20 @@ export const MyDeposits: React.FC = () => {
           </div>
         </div>
 
-        {(statusCategory === 'active' || statusCategory === 'matured') && (
+        {(statusCategory === 'active' || statusCategory === 'matured' || statusCategory === 'auto_renew_required') && (
           <div className={styles.actions}>
-            {statusCategory === 'matured' ? (
+            {statusCategory === 'active' && (
+              <Button
+                fullWidth
+                variant="danger"
+                onClick={() => handleEarlyWithdraw(deposit.depositId)}
+                loading={loading}
+              >
+                Early Withdraw (Penalty: {Number(deposit.core.penaltyBpsAtOpen) / 100}%)
+              </Button>
+            )}
+            
+            {statusCategory === 'matured' && (
               <>
                 <Button
                   fullWidth
@@ -280,14 +309,16 @@ export const MyDeposits: React.FC = () => {
                   Renew Deposit
                 </Button>
               </>
-            ) : (
+            )}
+            
+            {statusCategory === 'auto_renew_required' && (
               <Button
                 fullWidth
-                variant="danger"
-                onClick={() => handleEarlyWithdraw(deposit.depositId)}
+                variant="primary"
+                onClick={() => handleRenew(deposit.depositId, deposit.core.planId)}
                 loading={loading}
               >
-                Early Withdraw (Penalty: {Number(deposit.core.penaltyBpsAtOpen) / 100}%)
+                Auto Renew Required
               </Button>
             )}
           </div>
@@ -328,6 +359,18 @@ export const MyDeposits: React.FC = () => {
           </h2>
           <div className={styles.grid}>
             {groupedDeposits.matured.map(deposit => renderDepositCard(deposit, 'matured'))}
+          </div>
+        </section>
+      )}
+
+      {groupedDeposits.auto_renew_required.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
+            <AlertCircle size={24} style={{ color: '#ff9800' }} />
+            Auto Renew Required ({groupedDeposits.auto_renew_required.length})
+          </h2>
+          <div className={styles.grid}>
+            {groupedDeposits.auto_renew_required.map(deposit => renderDepositCard(deposit, 'auto_renew_required'))}
           </div>
         </section>
       )}

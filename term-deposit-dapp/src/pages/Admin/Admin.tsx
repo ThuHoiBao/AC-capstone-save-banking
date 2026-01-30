@@ -4,6 +4,7 @@ import { useAdmin } from '../../hooks/useAdmin';
 import { usePlans } from '../../hooks/usePlans';
 import { DataAggregator } from '../../services/dataAggregator';
 import { formatUSDC } from '../../utils/formatters';
+import { formatDuration } from '../../utils/time';
 import type { Plan } from '../../types';
 import { Button } from '../../components/common/Button/Button';
 import styles from './Admin.module.scss';
@@ -306,7 +307,7 @@ export const Admin: React.FC = () => {
           {plans.map((plan) => (
             <div key={plan.planId.toString()} className={`${styles.planCard} ${!(plan.enabled ?? true) ? styles.disabled : ''}`}>
               <div className={styles.planHeader}>
-                <h3>{DataAggregator.tenorSecondsToDays(Number(plan.tenorSeconds))} Days</h3>
+                <h3>{formatDuration(Number(plan.tenorSeconds))}</h3>
                 <span className={styles.planStatus}>
                   {(plan.enabled ?? true) ? '✅ Active' : '❌ Disabled'}
                 </span>

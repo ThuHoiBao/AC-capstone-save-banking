@@ -56,14 +56,14 @@ export const useAdmin = () => {
     }
   };
 
-  // Update existing plan (Note: New SavingLogic contract doesn't have updatePlan)
+  // Update existing plan
   const updatePlan = async (
-    _planId: number,
-    _aprBps: number,
-    _minDeposit: string,
-    _maxDeposit: string,
-    _penaltyBps: number,
-    _enabled: boolean
+    planId: number,
+    aprBps: number,
+    minDeposit: string,
+    maxDeposit: string,
+    penaltyBps: number,
+    isActive: boolean
   ) => {
     if (!provider || !savingLogicContract) {
       setError('Provider or contract not available');
@@ -75,13 +75,38 @@ export const useAdmin = () => {
       setError(null);
       setTxHash(null);
 
-      // Note: New SavingLogic contract does NOT support updating plans
-      // Plans are immutable once created for security reasons
-      // This function is kept for backward compatibility but will fail
+      const signer = await provider.getSigner();
+      const contract = savingLogicContract.connect(signer) as any;
+
+      const minDepositWei = parseUSDC(minDeposit);
+      const maxDepositWei = parseUSDC(maxDeposit);
+
+      console.log('🔧 [useAdmin] Updating plan onchain:', {
+        planId,
+        aprBps,
+        minDepositWei: minDepositWei.toString(),
+        maxDepositWei: maxDepositWei.toString(),
+        penaltyBps,
+        isActive
+      });
+
+      const tx = await contract.updatePlan(
+        planId,
+        aprBps,
+        minDepositWei,
+        maxDepositWei,
+        penaltyBps,
+        isActive
+      );
+
+      setTxHash(tx.hash);
+      console.log('✅ [useAdmin] Update transaction sent:', tx.hash);
       
-      setError('Plan updates not supported in new architecture. Plans are immutable.');
+      await tx.wait();
+      console.log('✅ [useAdmin] Update confirmed');
+      
       setLoading(false);
-      return false;
+      return true;
     } catch (err: any) {
       console.error('Update plan error:', err);
       setError(err.message || 'Failed to update plan');
@@ -90,8 +115,8 @@ export const useAdmin = () => {
     }
   };
 
-  // Toggle plan enabled status (Note: Not supported in new architecture)
-  const togglePlan = async (_planId: number, _enabled: boolean) => {
+  // Toggle plan enabled status using updatePlan with isActive parameter
+  const togglePlan = async (planId: number, enabled: boolean) => {
     if (!provider || !savingLogicContract) {
       setError('Provider or contract not available');
       return false;
@@ -101,11 +126,36 @@ export const useAdmin = () => {
       setLoading(true);
       setError(null);
       
-      // Note: New SavingLogic contract does NOT support toggling plans
-      // Plans are always active once created
-      setError('Plan toggle not supported in new architecture. Plans are always active.');
+      const signer = await provider.getSigner();
+      const contract = savingLogicContract.connect(signer) as any;
+
+      // Get current plan data
+      const plan = await contract.plans(planId);
+      
+      console.log('🔧 [useAdmin] Toggling plan:', {
+        planId,
+        currentActive: plan.isActive,
+        newActive: enabled
+      });
+
+      // Update plan with same values but change isActive
+      const tx = await contract.updatePlan(
+        planId,
+        plan.aprBps,
+        plan.minDeposit,
+        plan.maxDeposit,
+        plan.earlyWithdrawPenaltyBps,
+        enabled
+      );
+
+      setTxHash(tx.hash);
+      console.log('✅ [useAdmin] Toggle transaction sent:', tx.hash);
+      
+      await tx.wait();
+      console.log('✅ [useAdmin] Toggle confirmed');
+      
       setLoading(false);
-      return false;
+      return true;
     } catch (err: any) {
       console.error('Toggle plan error:', err);
       setError(err.message || 'Failed to toggle plan');
@@ -114,52 +164,74 @@ export const useAdmin = () => {
     }
   };
 
-  // Get vault statistics
-  const getVaultStats = async () => {
-    if (!vaultManagerContract || !savingLogicContract) return null;
+  // Set fee receiver address for penalties
+  const setFeeReceiver = async (newReceiverAddress: string) => {
+    if (!provider || !vaultManagerContract) {
+      setError('Provider or VaultManager contract not available');
+      return false;
+    }
 
     try {
-      // Try to get vault stats - these might be public variables or view functions
-      let totalDepositsValue = BigInt(0);
-      let availableCapitalValue = BigInt(0);
-      let committedCapitalValue = BigInt(0);
+      setLoading(true);
+      setError(null);
+      setTxHash(null);
 
-      try {
-        // Try as a function first
-        if (typeof vaultManagerContract.totalDeposits === 'function') {
-          totalDepositsValue = await vaultManagerContract.totalDeposits();
-        }
-      } catch (e) {
-        console.log('totalDeposits not available as function');
-      }
+      const signer = await provider.getSigner();
+      const contract = vaultManagerContract.connect(signer) as any;
 
-      try {
-        if (typeof vaultManagerContract.availableCapital === 'function') {
-          availableCapitalValue = await vaultManagerContract.availableCapital();
-        }
-      } catch (e) {
-        console.log('availableCapital not available');
-      }
+      console.log('🔧 [useAdmin] Setting fee receiver:', newReceiverAddress);
 
-      try {
-        if (typeof vaultManagerContract.committedCapital === 'function') {
-          committedCapitalValue = await vaultManagerContract.committedCapital();
-        }
-      } catch (e) {
-        console.log('committedCapital not available');
-      }
+      const tx = await contract.setFeeReceiver(newReceiverAddress);
+      
+      setTxHash(tx.hash);
+      console.log('✅ [useAdmin] SetFeeReceiver transaction sent:', tx.hash);
+      
+      await tx.wait();
+      console.log('✅ [useAdmin] SetFeeReceiver confirmed');
+      
+      setLoading(false);
+      return true;
+    } catch (err: any) {
+      console.error('Set fee receiver error:', err);
+      setError(err.message || 'Failed to set fee receiver');
+      setLoading(false);
+      return false;
+    }
+  };
+
+  // Get vault statistics
+  const getVaultStats = async () => {
+    if (!vaultManagerContract) return null;
+
+    try {
+      // Get vault stats from VaultManager contract
+      const [totalBalance, feeReceiver, savingLogic, isPaused] = await Promise.all([
+        vaultManagerContract.totalBalance(),
+        vaultManagerContract.feeReceiver(),
+        vaultManagerContract.savingLogic(),
+        vaultManagerContract.isPaused()
+      ]);
+
+      console.log('📊 [useAdmin] Vault stats:', {
+        totalBalance: totalBalance.toString(),
+        feeReceiver,
+        savingLogic,
+        isPaused
+      });
 
       return {
-        totalDeposits: totalDepositsValue.toString(),
-        availableCapital: availableCapitalValue.toString(),
-        committedCapital: committedCapitalValue.toString(),
+        totalBalance,
+        feeReceiver,
+        savingLogic,
+        isPaused
       };
     } catch (err) {
       console.error('Get vault stats error:', err);
       return {
-        totalDeposits: '0',
-        availableCapital: '0',
-        committedCapital: '0',
+        totalBalance: 0n,
+        feeReceiver: '',
+        savingLogic: '',
+        isPaused: false
       };
     }
   };
@@ -218,43 +290,14 @@ export const useAdmin = () => {
     }
   };
 
-  // Set penalty recipient address
-  const setPenaltyRecipient = async (recipientAddress: string) => {
-    if (!provider || !vaultManagerContract) {
-      setError('Provider or contract not available');
-      return false;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      setTxHash(null);
-
-      const signer = await provider.getSigner();
-      const contract = vaultManagerContract.connect(signer) as any;
-
-      const tx = await contract.setPenaltyRecipient(recipientAddress);
-      setTxHash(tx.hash);
-      await tx.wait();
-      
-      setLoading(false);
-      return true;
-    } catch (err: any) {
-      console.error('Set penalty recipient error:', err);
-      setError(err.message || 'Failed to set penalty recipient');
-      setLoading(false);
-      return false;
-    }
-  };
-
   return {
     createPlan,
     updatePlan,
     togglePlan,
     getVaultStats,
+    setFeeReceiver,
     emergencyPause,
     unpause,
-    setPenaltyRecipient,
     loading,
     error,
     txHash,

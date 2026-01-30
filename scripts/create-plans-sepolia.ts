@@ -29,9 +29,10 @@ async function main() {
   for (let i = 0; i < 10; i++) {
     try {
       const plan = await savingCore.getPlan(i);
-      if (Number(plan.tenorDays) > 0) {
+      const tenorDays = Number(plan.tenorSeconds) / (24 * 60 * 60);
+      if (tenorDays > 0) {
         existingPlans++;
-        console.log(`   Plan ${i}: ${plan.tenorDays} days @ ${Number(plan.aprBps) / 100}% APR`);
+        console.log(`   Plan ${i}: ${tenorDays} days @ ${Number(plan.aprBps) / 100}% APR`);
       }
     } catch {}
   }

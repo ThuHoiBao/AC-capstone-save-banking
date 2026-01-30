@@ -69,7 +69,7 @@ async function main() {
   for (let i = 0; i < 10; i++) {
     try {
       const plan = await savingCore.getPlan(i);
-      const tenor = Number(plan.tenorDays);
+      const tenor = Number(plan.tenorSeconds) / (24 * 60 * 60);
       
       if (tenor > 0) {
         const apr = Number(plan.aprBps) / 100;

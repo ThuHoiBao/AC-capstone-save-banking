@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export { IDepositCertificate__factory } from "./IDepositCertificate__factory";
+export { IDepositVault__factory } from "./IDepositVault__factory";
 export { ISavingCore__factory } from "./ISavingCore__factory";
 export { ISavingLogic__factory } from "./ISavingLogic__factory";
 export { IVaultManager__factory } from "./IVaultManager__factory";

@@ -1,12 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { DepositCertificate, SavingLogic, VaultManager, MockUSDC } from "../typechain";
+import { DepositCertificate, SavingLogic, VaultManager, MockUSDC, DepositVault } from "../typechain";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("DepositCertificate", function () {
   let certificate: DepositCertificate;
   let savingLogic: SavingLogic;
+  let depositVault: DepositVault;
   let vaultManager: VaultManager;
   let usdc: MockUSDC;
   let owner: SignerWithAddress;
@@ -29,6 +30,14 @@ describe("DepositCertificate", function () {
     certificate = await CertificateFactory.deploy(owner.address, METADATA_BASE_URI);
     await certificate.waitForDeployment();
 
+    // Deploy DepositVault
+    const DepositVaultFactory = await ethers.getContractFactory("DepositVault");
+    depositVault = await DepositVaultFactory.deploy(
+      await usdc.getAddress(),
+      owner.address
+    );
+    await depositVault.waitForDeployment();
+
     // Deploy VaultManager
     const VaultFactory = await ethers.getContractFactory("VaultManager");
     vaultManager = await VaultFactory.deploy(
@@ -43,10 +52,16 @@ describe("DepositCertificate", function () {
     savingLogic = await LogicFactory.deploy(
       await usdc.getAddress(),
       await certificate.getAddress(),
+      await depositVault.getAddress(),
       await vaultManager.getAddress(),
       owner.address
     );
     await savingLogic.waitForDeployment();
+
+    // Wire contracts
+    await depositVault.setSavingLogic(await savingLogic.getAddress());
+    await certificate.setSavingLogic(await savingLogic.getAddress());
+    await vaultManager.setSavingLogic(await savingLogic.getAddress());
 
     // Configure permissions
     await certificate.setSavingLogic(await savingLogic.getAddress());
@@ -122,7 +137,7 @@ describe("DepositCertificate", function () {
       depositAmount = ethers.parseUnits("1000", 6);
 
       // User approves SavingLogic
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), depositAmount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), depositAmount);
     });
 
     it("Should mint NFT when deposit is opened", async function () {
@@ -178,7 +193,7 @@ describe("DepositCertificate", function () {
 
     it("Should mint multiple NFTs to same user", async function () {
       await savingLogic.connect(user1).openDeposit(planId, depositAmount);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), depositAmount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), depositAmount);
       await savingLogic.connect(user1).openDeposit(planId, depositAmount);
 
       expect(await certificate.balanceOf(user1.address)).to.equal(2);
@@ -201,7 +216,7 @@ describe("DepositCertificate", function () {
       );
 
       const depositAmount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), depositAmount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), depositAmount);
       await savingLogic.connect(user1).openDeposit(1n, depositAmount);
       
       depositId = 1n;
@@ -251,7 +266,7 @@ describe("DepositCertificate", function () {
       // Create deposit
       await savingLogic.createPlan(90 * 24 * 60 * 60, 720, ethers.parseUnits("100", 6), 0, 300);
       const depositAmount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), depositAmount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), depositAmount);
       await savingLogic.connect(user1).openDeposit(1n, depositAmount);
 
       expect(await certificate.exists(1n)).to.be.true;
@@ -284,7 +299,7 @@ describe("DepositCertificate", function () {
       // Create deposit with old logic
       await savingLogic.createPlan(90 * 24 * 60 * 60, 720, ethers.parseUnits("100", 6), 0, 300);
       const depositAmount = ethers.parseUnits("1000", 6);
-      await usdc.connect(user1).approve(await savingLogic.getAddress(), depositAmount);
+      await usdc.connect(user1).approve(await depositVault.getAddress(), depositAmount);
       await savingLogic.connect(user1).openDeposit(1n, depositAmount);
 
       // Switch to new logic

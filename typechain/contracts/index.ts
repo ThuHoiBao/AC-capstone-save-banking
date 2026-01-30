@@ -6,6 +6,6 @@ export type { interfaces };
 import type * as tokens from "./tokens";
 export type { tokens };
 export type { DepositCertificate } from "./DepositCertificate";
-export type { SavingCore } from "./SavingCore";
+export type { DepositVault } from "./DepositVault";
 export type { SavingLogic } from "./SavingLogic";
 export type { VaultManager } from "./VaultManager";

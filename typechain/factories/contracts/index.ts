@@ -4,6 +4,6 @@
 export * as interfaces from "./interfaces";
 export * as tokens from "./tokens";
 export { DepositCertificate__factory } from "./DepositCertificate__factory";
-export { SavingCore__factory } from "./SavingCore__factory";
+export { DepositVault__factory } from "./DepositVault__factory";
 export { SavingLogic__factory } from "./SavingLogic__factory";
 export { VaultManager__factory } from "./VaultManager__factory";

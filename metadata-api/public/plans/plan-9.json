@@ -1,0 +1,18 @@
+{
+  "id": 9,
+  "name": "Deposit chain Metadata",
+  "description": "Description Deposit chain Metadata  ",
+  "features": [
+    "Features 123",
+    "Features 234",
+    "Features 2345"
+  ],
+  "riskLevel": "Low",
+  "recommended": [
+    "Recommended For 1",
+    "Recommended For 2"
+  ],
+  "image": "/images/plans/plan-new.avif",
+  "color": "#3B82F6",
+  "enabled": true
+}

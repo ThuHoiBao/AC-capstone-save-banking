@@ -68,7 +68,7 @@ async function main() {
         // Calculate expected interest
         const principal = Number(ethers.formatUnits(deposit.principal, 6));
         const apr = Number(deposit.aprBpsAtOpen) / 100;
-        const tenor = Number(plan.tenorDays);
+        const tenor = Number(plan.tenorSeconds) / (24 * 60 * 60);
         const expectedInterest = (principal * apr * tenor) / (365 * 100);
         
         userDeposits.push({

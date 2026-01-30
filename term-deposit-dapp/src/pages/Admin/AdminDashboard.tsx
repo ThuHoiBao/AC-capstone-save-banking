@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useWallet } from '../../context/WalletContext';
+import { useAdmin } from '../../hooks/useAdmin';
 import { useAdminPlans } from '../../hooks/useAdminPlans';
 import { usePlans } from '../../hooks/usePlans';
 import { useDeposit } from '../../hooks/useDeposit';
+import { useContracts } from '../../context/ContractContext';
 import { formatUSDC } from '../../utils/formatters';
 import type { Deposit, Plan } from '../../types';
 import { AdminPlanForm } from '../../components/Admin/AdminPlanForm/AdminPlanForm';
@@ -20,39 +22,82 @@ import {
   Check,
   BarChart3,
   Settings,
-  Wallet
+  Wallet,
+  ExternalLink
 } from 'lucide-react';
+import { Button } from '../../components/common/Button/Button';
 import styles from './AdminDashboard.module.scss';
+
+interface VaultStats {
+  totalBalance: bigint;
+  feeReceiver: string;
+  savingLogic: string;
+  isPaused: boolean;
+}
 
 export const Admin: React.FC = () => {
   const { address, isAdmin } = useWallet();
+  const { getVaultStats, setFeeReceiver, loading: adminLoading, error: adminError, txHash } = useAdmin();
   const { createPlan, updatePlan, togglePlanStatus, loading } = useAdminPlans();
   const { plans, fetchPlans } = usePlans();
   const { fetchAllDeposits } = useDeposit();
+  const { vaultManagerContract, savingLogicContract } = useContracts();
   
   const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [vaultStats, setVaultStats] = useState<VaultStats | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'users' | 'settings'>('overview');
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  const [newFeeReceiver, setNewFeeReceiver] = useState('');
 
   useEffect(() => {
     if (isAdmin) {
-      fetchPlans();
-      loadDeposits();
+      loadAllData();
     }
   }, [isAdmin]);
+
+  const loadAllData = async () => {
+    await Promise.all([
+      fetchPlans(),
+      loadDeposits(),
+      loadVaultStats()
+    ]);
+  };
 
   const loadDeposits = async () => {
     const allDeposits = await fetchAllDeposits();
     setDeposits(allDeposits);
   };
 
-  const copyToClipboard = (address: string) => {
-    navigator.clipboard.writeText(address).then(() => {
-      setCopiedAddress(address);
+  const loadVaultStats = async () => {
+    const stats = await getVaultStats();
+    if (stats) {
+      setVaultStats(stats);
+      setNewFeeReceiver(stats.feeReceiver);
+    }
+  };
+
+  const copyToClipboard = (addr: string) => {
+    navigator.clipboard.writeText(addr).then(() => {
+      setCopiedAddress(addr);
       setTimeout(() => setCopiedAddress(null), 2000);
     });
+  };
+
+  const handleSetFeeReceiver = async () => {
+    if (!newFeeReceiver || newFeeReceiver === vaultStats?.feeReceiver) {
+      alert('Please enter a valid new address');
+      return;
+    }
+
+    const success = await setFeeReceiver(newFeeReceiver);
+    if (success) {
+      alert('Fee receiver updated successfully!');
+      await loadVaultStats();
+    } else {
+      alert(`Failed to update fee receiver: ${adminError}`);
+    }
   };
 
   // Plan management handlers
@@ -116,8 +161,9 @@ export const Admin: React.FC = () => {
   // Calculate statistics
   const totalDeposits = deposits.length;
   const activeDeposits = deposits.filter((d: Deposit) => d.core.status === 0).length;
-  const totalValueLocked = deposits.reduce((sum: number, d: Deposit) => sum + Number(d.core.principal), 0);
+  const totalValueLocked = deposits.reduce((sum: bigint, d: Deposit) => sum + d.core.principal, 0n);
   const uniqueUsers = new Set(deposits.map((d: Deposit) => d.owner.toLowerCase())).size;
+  const activePlans = Array.from(plans.values()).filter((p: Plan) => p.metadata?.enabled !== false).length;
 
   // Get user list with deposit counts
   const userStats = deposits.reduce((acc: Record<string, any>, deposit: Deposit) => {
@@ -126,7 +172,7 @@ export const Admin: React.FC = () => {
       acc[userAddr] = {
         address: deposit.owner,
         depositCount: 0,
-        totalDeposited: BigInt(0),
+        totalDeposited: 0n,
         activeDeposits: 0,
       };
     }
@@ -136,7 +182,14 @@ export const Admin: React.FC = () => {
     return acc;
   }, {} as Record<string, any>);
 
-  const userList = Object.values(userStats);
+  const userList = Object.values(userStats).sort((a: any, b: any) => b.depositCount - a.depositCount);
+
+  // Contract addresses
+  const CONTRACT_ADDRESSES = {
+    SavingLogic: savingLogicContract?.target || '-',
+    VaultManager: vaultManagerContract?.target || '-',
+    DepositVault: vaultStats?.savingLogic || '-'
+  };
 
   return (
     <div className={styles.container}>
@@ -243,7 +296,7 @@ export const Admin: React.FC = () => {
             <div className={styles.overviewGrid}>
               <div className={styles.overviewCard}>
                 <h3>Active Plans</h3>
-                <div className={styles.overviewValue}>{Array.from(plans.values()).filter(p => p.enabled).length}</div>
+                <div className={styles.overviewValue}>{activePlans}</div>
                 <p className={styles.overviewLabel}>Enabled plans</p>
               </div>
 
@@ -256,7 +309,7 @@ export const Admin: React.FC = () => {
               <div className={styles.overviewCard}>
                 <h3>Avg Deposit Size</h3>
                 <div className={styles.overviewValue}>
-                  {totalDeposits > 0 ? formatUSDC(BigInt(Math.floor(totalValueLocked / totalDeposits))) : '0'}
+                  {totalDeposits > 0 ? formatUSDC(totalValueLocked / BigInt(totalDeposits)) : '0'}
                 </div>
                 <p className={styles.overviewLabel}>USDC per deposit</p>
               </div>
@@ -264,9 +317,87 @@ export const Admin: React.FC = () => {
               <div className={styles.overviewCard}>
                 <h3>Platform Status</h3>
                 <div className={styles.overviewValue}>
-                  <CheckCircle size={32} className={styles.statusIcon} />
+                  {vaultStats?.isPaused ? (
+                    <AlertCircle size={32} className={styles.statusIconPaused} />
+                  ) : (
+                    <CheckCircle size={32} className={styles.statusIcon} />
+                  )}
                 </div>
-                <p className={styles.overviewLabel}>Operational</p>
+                <p className={styles.overviewLabel}>
+                  {vaultStats?.isPaused ? 'Paused' : 'Operational'}
+                </p>
+              </div>
+            </div>
+
+            {/* Vault Stats */}
+            <div className={styles.vaultSection}>
+              <h3>Vault Information</h3>
+              <div className={styles.vaultStats}>
+                <div className={styles.vaultCard}>
+                  <DollarSign size={20} />
+                  <div>
+                    <p className={styles.vaultLabel}>Vault Balance</p>
+                    <p className={styles.vaultValue}>
+                      {vaultStats ? formatUSDC(vaultStats.totalBalance) : '0'} USDC
+                    </p>
+                  </div>
+                </div>
+                <div className={styles.vaultCard}>
+                  <Wallet size={20} />
+                  <div>
+                    <p className={styles.vaultLabel}>Fee Receiver</p>
+                    <div className={styles.addressWithCopy}>
+                      <code className={styles.vaultValue}>
+                        {vaultStats?.feeReceiver ? 
+                          `${vaultStats.feeReceiver.slice(0, 8)}...${vaultStats.feeReceiver.slice(-6)}` 
+                          : 'Not set'}
+                      </code>
+                      {vaultStats?.feeReceiver && (
+                        <button 
+                          className={styles.copyButton}
+                          onClick={() => copyToClipboard(vaultStats.feeReceiver)}
+                        >
+                          {copiedAddress === vaultStats.feeReceiver ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contract Addresses */}
+            <div className={styles.contractsSection}>
+              <h3>Contract Addresses</h3>
+              <div className={styles.contractsList}>
+                {Object.entries(CONTRACT_ADDRESSES).map(([name, addr]) => (
+                  <div key={name} className={styles.contractItem}>
+                    <span className={styles.contractName}>{name}</span>
+                    <div className={styles.addressWithCopy}>
+                      <code>{addr !== '-' ? `${String(addr).slice(0, 10)}...${String(addr).slice(-8)}` : '-'}</code>
+                      {addr !== '-' && (
+                        <>
+                          <button 
+                            className={styles.copyButton}
+                            onClick={() => copyToClipboard(String(addr))}
+                            title="Copy"
+                          >
+                            {copiedAddress === addr ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                          <a
+                            href={`https://sepolia.etherscan.io/address/${addr}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.linkButton}
+                            title="View on Etherscan"
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -374,18 +505,76 @@ export const Admin: React.FC = () => {
               <h2>Platform Settings</h2>
             </div>
 
+            {/* Fee Receiver Settings */}
             <div className={styles.settingsCard}>
               <h3>
-                <AlertCircle size={20} />
-                Penalty Recipient Address
+                <Wallet size={20} />
+                Penalty Fee Receiver Address
               </h3>
               <p>Set the address that will receive early withdrawal penalty fees</p>
-              <p className={styles.warning}>
-                <AlertCircle size={16} />
-                This functionality is not available in the new architecture.
-              </p>
+              
+              <div className={styles.settingForm}>
+                <div className={styles.formGroup}>
+                  <label>Current Fee Receiver</label>
+                  <div className={styles.addressWithCopy}>
+                    <code className={styles.currentAddress}>
+                      {vaultStats?.feeReceiver || 'Not set'}
+                    </code>
+                    {vaultStats?.feeReceiver && (
+                      <button 
+                        className={styles.copyButton}
+                        onClick={() => copyToClipboard(vaultStats.feeReceiver)}
+                      >
+                        {copiedAddress === vaultStats.feeReceiver ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>New Fee Receiver Address</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="0x..."
+                    value={newFeeReceiver}
+                    onChange={(e) => setNewFeeReceiver(e.target.value)}
+                  />
+                </div>
+
+                {adminError && (
+                  <div className={styles.errorMessage}>
+                    <AlertCircle size={16} />
+                    {adminError}
+                  </div>
+                )}
+
+                {txHash && (
+                  <div className={styles.successMessage}>
+                    <CheckCircle size={16} />
+                    Transaction sent: {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                    <a 
+                      href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.txLink}
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleSetFeeReceiver}
+                  loading={adminLoading}
+                  disabled={!newFeeReceiver || newFeeReceiver === vaultStats?.feeReceiver}
+                >
+                  Update Fee Receiver
+                </Button>
+              </div>
             </div>
 
+            {/* Admin Info */}
             <div className={styles.settingsCard}>
               <h3>
                 <Shield size={20} />
@@ -394,11 +583,19 @@ export const Admin: React.FC = () => {
               <div className={styles.adminInfo}>
                 <div className={styles.infoRow}>
                   <span>Your Address:</span>
-                  <code>{address}</code>
+                  <div className={styles.addressWithCopy}>
+                    <code>{address}</code>
+                    <button 
+                      className={styles.copyButton}
+                      onClick={() => copyToClipboard(address || '')}
+                    >
+                      {copiedAddress === address ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
                 </div>
                 <div className={styles.infoRow}>
                   <span>Role:</span>
-                  <span className={styles.roleAdmin}>Administrator</span>
+                  <span className={styles.roleAdmin}>ADMINISTRATOR</span>
                 </div>
               </div>
             </div>

@@ -10,18 +10,21 @@ import {Types} from "./types/Types.sol";
 import {ISavingLogic} from "./interfaces/ISavingLogic.sol";
 import {IDepositCertificate} from "./interfaces/IDepositCertificate.sol";
 import {IVaultManager} from "./interfaces/IVaultManager.sol";
+import {IDepositVault} from "./interfaces/IDepositVault.sol";
 import {InterestMath} from "./libs/InterestMath.sol";
 
 /// @title SavingLogic
-/// @notice Business logic for term deposits (NO ERC721)
+/// @notice Business logic for term deposits - NO TOKEN STORAGE
 /// @dev Follows Single Responsibility Principle: ONLY handles business logic
-/// @dev Uses dependency injection for Certificate and VaultManager (upgradeable)
+/// @dev Uses dependency injection for Certificate, DepositVault, and VaultManager
+/// @custom:security User funds stored in DepositVault, NOT in this contract
 contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // State variables
     IERC20 private immutable _token;
     IDepositCertificate public immutable certificate;
+    IDepositVault public immutable depositVault;
     IVaultManager public vaultManager;
     
     uint256 public gracePeriod = 3 days;
@@ -34,20 +37,24 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
     /// @notice Constructor with dependency injection
     /// @param tokenAddress USDC token address
     /// @param certificateAddress DepositCertificate contract address
-    /// @param vaultManagerAddress VaultManager contract address
+    /// @param depositVaultAddress DepositVault contract address (holds user funds)
+    /// @param vaultManagerAddress VaultManager contract address (holds interest funds)
     /// @param initialOwner Admin address
     constructor(
         address tokenAddress,
         address certificateAddress,
+        address depositVaultAddress,
         address vaultManagerAddress,
         address initialOwner
     ) Ownable(initialOwner) {
         require(tokenAddress != address(0), "Invalid token");
         require(certificateAddress != address(0), "Invalid certificate");
-        require(vaultManagerAddress != address(0), "Invalid vault");
+        require(depositVaultAddress != address(0), "Invalid deposit vault");
+        require(vaultManagerAddress != address(0), "Invalid vault manager");
         
         _token = IERC20(tokenAddress);
         certificate = IDepositCertificate(certificateAddress);
+        depositVault = IDepositVault(depositVaultAddress);
         vaultManager = IVaultManager(vaultManagerAddress);
     }
 
@@ -133,8 +140,8 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
             status: Types.DepositStatus.Active
         });
 
-        // Transfer tokens from user to this contract
-        _token.safeTransferFrom(msg.sender, address(this), amount);
+        // Transfer tokens from user to DepositVault (NOT to this contract)
+        depositVault.deposit(msg.sender, amount);
 
         // Mint NFT certificate (delegate to Certificate contract)
         certificate.mint(msg.sender, depositId, depositCore);
@@ -169,11 +176,11 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
         // Update status in Certificate contract
         certificate.updateStatus(depositId, Types.DepositStatus.Withdrawn);
 
-        // Get interest from vault
+        // Get interest from VaultManager
         vaultManager.payoutInterest(msg.sender, interest);
 
-        // Transfer principal back to user
-        _token.safeTransfer(msg.sender, principal);
+        // Get principal from DepositVault
+        depositVault.withdraw(msg.sender, principal);
 
         emit Withdrawn(depositId, msg.sender, principal, interest, false);
     }
@@ -200,11 +207,14 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
         // Update status in Certificate contract
         certificate.updateStatus(depositId, Types.DepositStatus.Withdrawn);
 
-        // Transfer penalty to vault, then distribute to fee receiver
+        // Withdraw full principal from DepositVault
+        depositVault.withdraw(address(this), principal);
+        
+        // Transfer penalty to VaultManager
         _token.safeTransfer(address(vaultManager), penalty);
         vaultManager.distributePenalty(penalty);
-
-        // Transfer principal minus penalty to user
+        
+        // Transfer remaining to user
         _token.safeTransfer(msg.sender, principalAfterPenalty);
 
         emit Withdrawn(depositId, msg.sender, principal, 0, true);
@@ -249,8 +259,11 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
         // Update old deposit status
         certificate.updateStatus(oldDepositId, Types.DepositStatus.ManualRenewed);
 
-        // Get interest from vault for compound
-        vaultManager.payoutInterest(address(this), interest);
+        // Get interest from VaultManager (sent directly to DepositVault)
+        vaultManager.payoutInterest(address(depositVault), interest);
+        
+        // New principal = old principal (still in vault) + interest (just added)
+        newPrincipal = oldDeposit.principal + interest;
 
         // Create new deposit
         newDepositId = _nextDepositId++;
@@ -259,7 +272,7 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
         Types.DepositCore memory newDepositCore = Types.DepositCore({
             depositId: newDepositId,
             planId: newPlanId,
-            principal: newPrincipal,
+            principal: newPrincipal,  // Already compounded by DepositVault
             startAt: block.timestamp,
             maturityAt: newMaturityAt,
             aprBpsAtOpen: newPlan.aprBps,
@@ -316,8 +329,14 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
         // Update old deposit status
         certificate.updateStatus(oldDepositId, Types.DepositStatus.AutoRenewed);
 
-        // Get interest from vault
+        // Get interest from VaultManager
         vaultManager.payoutInterest(address(this), interest);
+        
+        // Transfer interest to DepositVault (compound with existing principal)
+        _token.safeTransfer(address(depositVault), interest);
+        
+        // Calculate new principal
+        newPrincipal = oldDeposit.principal + interest;
 
         // Create new deposit (same plan, but new current APR)
         newDepositId = _nextDepositId++;
@@ -326,7 +345,7 @@ contract SavingLogic is ISavingLogic, Ownable, ReentrancyGuard {
         Types.DepositCore memory newDepositCore = Types.DepositCore({
             depositId: newDepositId,
             planId: oldDeposit.planId,
-            principal: newPrincipal,
+            principal: newPrincipal,  // Already compounded by DepositVault
             startAt: block.timestamp,
             maturityAt: newMaturityAt,
             aprBpsAtOpen: plan.aprBps, // Use NEW APR (plan may have been updated)

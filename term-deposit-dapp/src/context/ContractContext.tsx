@@ -20,6 +20,7 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
       return {
         provider: null,
         depositCertificateContract: null,
+        depositVaultContract: null,
         savingLogicContract: null,
         vaultManagerContract: null,
         usdcContract: null,
@@ -32,6 +33,13 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     const depositCertificateContract = new Contract(
       CONTRACTS.DepositCertificate.address,
       CONTRACTS.DepositCertificate.abi,
+      provider
+    );
+
+    // ⭐ NEW in v2.0: DepositVault for fund custody
+    const depositVaultContract = new Contract(
+      CONTRACTS.DepositVault.address,
+      CONTRACTS.DepositVault.abi,
       provider
     );
 
@@ -58,6 +66,7 @@ export const ContractProvider: React.FC<{ children: ReactNode }> = ({ children }
     return {
       provider,
       depositCertificateContract,
+      depositVaultContract,
       savingLogicContract,
       vaultManagerContract,
       usdcContract,
