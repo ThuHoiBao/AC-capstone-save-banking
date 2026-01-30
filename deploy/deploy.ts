@@ -41,7 +41,7 @@ async function main() {
 
   // ===== 4. Wire SavingCore <-> VaultManager =====
   console.log("4️⃣ Wiring SavingCore ↔ VaultManager...");
-  await vaultManager.setSavingCore(savingCoreAddress);
+  await vaultManager.setSavinsavingCoreAddressgCore();
   console.log(`✅ VaultManager.setSavingCore(${savingCoreAddress})\n`);
 
   // ===== 5. Create Plans =====

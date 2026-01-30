@@ -109,11 +109,11 @@ A fully decentralized term deposit savings protocol that brings traditional bank
 │  - My Deposits  │◄───────────┤  VaultManager    │
 │  - NFT Gallery  │            │  DepositCert     │
 │  - Admin Panel  │            │  MockUSDC        │
-└────────┬────────┘            └────────┬──────────┘
-         │                              │
-         │        ┌─────────────────────┘
-         │        │
-┌────────▼────────▼─────┐
+└────────┬────────┘            └──────────────────┘
+         │                              
+         │        
+         │        
+┌────────▼─────────────┐
 │   Metadata API/IPFS   │
 │  (NFT Certificate     │
 │   Images & Data)      │

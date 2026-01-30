@@ -60,7 +60,7 @@ Tái cấu trúc kiến trúc smart contract hiện tại để tách biệt log
 │   SavingLogic.sol       │────→│   VaultManager.sol      │
 │   (200 dòng)            │calls│   (Giữ nguyên)          │
 │                         │     │                         │
-│  ✅ BUSINESS LOGIC      │     │  ✅ LIQUIDITY POOL      │
+│  ✅ BUSINESS LOGIC      │    │  ✅ LIQUIDITY POOL      │
 │  (CÓ THỂ NÂNG CẤP)      │     │  (GIỮ NGUYÊN)           │
 │                         │     │                         │
 │  - openDeposit()        │     │  - fundVault()          │
