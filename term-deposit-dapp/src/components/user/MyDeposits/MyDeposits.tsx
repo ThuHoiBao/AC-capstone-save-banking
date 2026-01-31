@@ -89,10 +89,12 @@ export const MyDeposits: React.FC = () => {
 
     // Map state type to category
     if (state.type === 'closed') {
-      if (state.statusName === 'MaturedWithdrawn' || state.statusName === 'EarlyWithdrawn') {
+      // Check status directly: 1 = Withdrawn
+      if (Number(deposit.core.status) === 1) {
         return 'withdrawn';
       }
-      if (state.statusName === 'ManualRenewed' || state.statusName === 'AutoRenewed') {
+      // Check for renewed: 2 = ManualRenewed, 3 = AutoRenewed
+      if (Number(deposit.core.status) === 2 || Number(deposit.core.status) === 3) {
         return 'renewed';
       }
     }

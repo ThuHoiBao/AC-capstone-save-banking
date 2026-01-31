@@ -56,10 +56,11 @@ A fully decentralized term deposit savings protocol that brings traditional bank
 
 | Contract | Address | Verified |
 |----------|---------|----------|
-| **MockUSDC** | [`0xd69e72f35E8C4226Ff05D13644C7f345AaBCC941`](https://sepolia.etherscan.io/address/0xd69e72f35E8C4226Ff05D13644C7f345AaBCC941) | ✅ |
-| **VaultManager** | [`0xA9E8f70EDE7932d3Caa7FE66BA2dc5840b6aA315`](https://sepolia.etherscan.io/address/0xA9E8f70EDE7932d3Caa7FE66BA2dc5840b6aA315) | ✅ |
-| **SavingLogic** | [`0x81B8b301ff4193e0DFD8b6044552B621830B6a44`](https://sepolia.etherscan.io/address/0x81B8b301ff4193e0DFD8b6044552B621830B6a44) | ✅ |
-| **DepositCertificate** | [`0xd50edbc6973d891B95Eb2087a1a13b620440B3e3`](https://sepolia.etherscan.io/address/0xd50edbc6973d891B95Eb2087a1a13b620440B3e3) | ✅ |
+| **MockUSDC** | [`0x73a9bEc9B836007904A19C30B2FD9B2f7A6720BA`](https://sepolia.etherscan.io/address/0x73a9bEc9B836007904A19C30B2FD9B2f7A6720BA) | ✅ |
+| **DepositCertificate** | [`0x2A4A34e3C69D862e1dAA94C64C5747f022160AB4`](https://sepolia.etherscan.io/address/0x2A4A34e3C69D862e1dAA94C64C5747f022160AB4) | ✅ |
+| **DepositVault** | [`0x077a4941565e0194a00Cd8DABE1acA09111F7B06`](https://sepolia.etherscan.io/address/0x077a4941565e0194a00Cd8DABE1acA09111F7B06) | ✅ |
+| **VaultManager** | [`0xFf586ADCE68Ed8f0FcfbFA268Ba81E438900e136`](https://sepolia.etherscan.io/address/0xFf586ADCE68Ed8f0FcfbFA268Ba81E438900e136) | ✅ |
+| **SavingLogic** | [`0xddEDe5D9F4005C1e5f84Cda022DB7e558177FEAb`](https://sepolia.etherscan.io/address/0xddEDe5D9F4005C1e5f84Cda022DB7e558177FEAb) | ✅ |
 
 ### Frontend
 
@@ -598,11 +599,12 @@ Key settings in `hardhat.config.ts`:
 Frontend environment (`.env` in `term-deposit-dapp/`):
 ```bash
 VITE_CHAIN_ID=11155111
-VITE_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
-VITE_USDC_ADDRESS=0xd69e72f35E8C4226Ff05D13644C7f345AaBCC941
-VITE_VAULT_MANAGER_ADDRESS=0xA9E8f70EDE7932d3Caa7FE66BA2dc5840b6aA315
-VITE_SAVING_LOGIC_ADDRESS=0x81B8b301ff4193e0DFD8b6044552B621830B6a44
-VITE_DEPOSIT_CERTIFICATE_ADDRESS=0xd50edbc6973d891B95Eb2087a1a13b620440B3e3
+VITE_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
+VITE_MOCK_USDC_ADDRESS=0x73a9bEc9B836007904A19C30B2FD9B2f7A6720BA
+VITE_DEPOSIT_CERTIFICATE_ADDRESS=0x2A4A34e3C69D862e1dAA94C64C5747f022160AB4
+VITE_DEPOSIT_VAULT_ADDRESS=0x077a4941565e0194a00Cd8DABE1acA09111F7B06
+VITE_VAULT_MANAGER_ADDRESS=0xFf586ADCE68Ed8f0FcfbFA268Ba81E438900e136
+VITE_SAVING_LOGIC_ADDRESS=0xddEDe5D9F4005C1e5f84Cda022DB7e558177FEAb
 ```
 
 ---
