@@ -69,7 +69,8 @@ export const AdminPlanForm: React.FC<AdminPlanFormProps> = ({
         tenorSeconds,
         tenorDays,
         hours: tenorDays * 24,
-        minutes: tenorDays * 24 * 60
+        minutes: tenorDays * 24 * 60,
+        imagePath: metadata?.image
       });
       
       setFormData({
@@ -87,7 +88,14 @@ export const AdminPlanForm: React.FC<AdminPlanFormProps> = ({
         color: metadata?.color || '#3B82F6',
         enabled: metadata?.enabled ?? true
       });
-      setImagePreview(metadata?.image || '');
+      
+      // Set image preview with full URL
+      if (metadata?.image) {
+        const apiUrl = import.meta.env.VITE_METADATA_API_URL || 'http://localhost:3002';
+        setImagePreview(`${apiUrl}${metadata.image}`);
+      } else {
+        setImagePreview('');
+      }
     }
   }, [editingPlan]);
 

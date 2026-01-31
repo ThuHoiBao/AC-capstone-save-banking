@@ -1,10 +1,9 @@
 {
   "id": 5,
-  "image": "/images/plans/dn1.webp",
   "name": "Growth Builder (90d)",
   "description": "Medium-term balanced returns",
   "features": [
-    "Competitive APR",
+    "Competitive APCT",
     "Moderate duration",
     "Balanced risk",
     "Steady growth"
@@ -14,6 +13,7 @@
     "moderate investors",
     "goal-oriented"
   ],
+  "image": "/images/plans/dn1.webp",
   "color": "#3B82F6",
-  "enabled": false
+  "enabled": true
 }

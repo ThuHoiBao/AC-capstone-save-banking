@@ -39,10 +39,11 @@ export const PlansSection: React.FC<PlansSectionProps> = ({
       <div className={styles.plansGrid}>
         {plans.map(plan => {
           const days = DataAggregator.tenorSecondsToDays(Number(plan.tenorSeconds));
-          const isEnabled = plan.metadata?.enabled ?? true;
+          // ⭐ Use on-chain isActive instead of off-chain enabled
+          const isActive = plan.isActive;
           
           return (
-            <div key={plan.planId.toString()} className={`${styles.planCard} ${!isEnabled ? styles.disabled : ''}`}>
+            <div key={plan.planId.toString()} className={`${styles.planCard} ${!isActive ? styles.disabled : ''}`}>
               {/* Plan Image */}
               {plan.metadata?.image && (
                 <div className={styles.planImage}>
@@ -64,8 +65,8 @@ export const PlansSection: React.FC<PlansSectionProps> = ({
                     <h3>{plan.metadata.name}</h3>
                   )}
                 </div>
-                <span className={`${styles.badge} ${isEnabled ? styles.active : styles.inactive}`}>
-                  {isEnabled ? 'ACTIVE' : 'DISABLED'}
+                <span className={`${styles.badge} ${isActive ? styles.active : styles.inactive}`}>
+                  {isActive ? 'ACTIVE' : 'DISABLED'}
                 </span>
               </div>
 
@@ -122,13 +123,13 @@ export const PlansSection: React.FC<PlansSectionProps> = ({
                 </button>
                 
                 <button
-                  className={`${styles.toggleButton} ${isEnabled ? styles.disableBtn : styles.enableBtn}`}
+                  className={`${styles.toggleButton} ${isActive ? styles.disableBtn : styles.enableBtn}`}
                   onClick={() => onToggleClick(plan)}
                   disabled={loading}
-                  title={isEnabled ? 'Disable plan' : 'Enable plan'}
+                  title={isActive ? 'Disable plan (on-chain)' : 'Enable plan (on-chain)'}
                 >
-                  {isEnabled ? <Lock size={16} /> : <Unlock size={16} />}
-                  <span>{isEnabled ? 'Disable' : 'Enable'}</span>
+                  {isActive ? <Lock size={16} /> : <Unlock size={16} />}
+                  <span>{isActive ? 'Disable' : 'Enable'}</span>
                 </button>
               </div>
             </div>

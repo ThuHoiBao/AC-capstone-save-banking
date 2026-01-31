@@ -54,6 +54,7 @@ export class DataAggregator {
         minDeposit: planCore.minDeposit,
         maxDeposit: planCore.maxDeposit,
         earlyWithdrawPenaltyBps: planCore.earlyWithdrawPenaltyBps,
+        isActive: planCore.isActive,  // ⭐ On-chain active status
         metadata: metadata,
       };
 

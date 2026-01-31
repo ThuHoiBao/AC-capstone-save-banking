@@ -57,12 +57,41 @@
   padding: $spacing-8;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
   
   &:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
     border-color: $primary-300;
   }
+  
+  // ⭐ Disabled plan style
+  &.disabled {
+    opacity: 0.7;
+    filter: grayscale(0.6);
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.05) 0%, rgba(71, 85, 105, 0.05) 100%);
+    border-color: $neutral-300;
+    
+    &:hover {
+      transform: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border-color: $neutral-300;
+    }
+  }
+}
+
+.disabledBadge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 10;
 }
 
 .cardHeader {

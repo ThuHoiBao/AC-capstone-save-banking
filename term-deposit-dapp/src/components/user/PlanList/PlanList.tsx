@@ -48,9 +48,20 @@ export const PlanList: React.FC = () => {
       <div className={styles.grid}>
         {plans.map((plan) => {
           const durationText = formatDuration(Number(plan.tenorSeconds));
+          // ⭐ Check on-chain isActive status
+          const isActive = plan.isActive;
           
           return (
-            <div key={plan.planId.toString()} className={styles.card}>
+            <div 
+              key={plan.planId.toString()} 
+              className={`${styles.card} ${!isActive ? styles.disabled : ''}`}
+            >
+              {!isActive && (
+                <div className={styles.disabledBadge}>
+                  PLAN CLOSED
+                </div>
+              )}
+              
               <div className={styles.cardHeader}>
                 <h3 className={styles.cardTitle}>{plan.metadata?.name || `Plan #${plan.planId}`}</h3>
                 <div className={styles.apr}>{formatAPR(plan.aprBps)}</div>
@@ -85,8 +96,10 @@ export const PlanList: React.FC = () => {
               <Button
                 fullWidth
                 onClick={() => openDepositModal(plan)}
+                disabled={!isActive}
+                title={!isActive ? 'This plan is currently closed' : 'Open deposit'}
               >
-                Deposit
+                {isActive ? 'Deposit' : 'Closed'}
               </Button>
             </div>
           );

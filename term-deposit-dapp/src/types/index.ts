@@ -30,6 +30,7 @@ export interface PlanCore {
   minDeposit: bigint;
   maxDeposit: bigint;
   earlyWithdrawPenaltyBps: bigint;
+  isActive: boolean;  // ⭐ On-chain active status
 }
 
 // Plan Metadata (Off-chain from API)

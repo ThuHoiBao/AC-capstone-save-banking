@@ -42,8 +42,26 @@
 }
 
 .planCard.disabled {
-  opacity: 0.6;
-  filter: grayscale(0.5);
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  background: linear-gradient(135deg, rgba(30, 35, 53, 0.4) 0%, rgba(20, 25, 43, 0.4) 100%);
+  border-color: #1a1f35;
+  position: relative;
+}
+
+.planCard.disabled::after {
+  content: '🔒 CLOSED';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 10;
 }
 
 .planImage {
