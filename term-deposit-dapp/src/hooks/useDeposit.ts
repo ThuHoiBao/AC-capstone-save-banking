@@ -156,34 +156,56 @@ export const useDeposit = () => {
     try {
       const deposits: Deposit[] = [];
       
-      // Get total supply from contract
-      const totalSupply = await depositCertificateContract.totalSupply();
-      const count = Number(totalSupply);
+      // ⭐ IMPORTANT: DepositCertificate does NOT have totalSupply() 
+      // (not using ERC721Enumerable to save gas)
+      // So we iterate from depositId 1 to MAX_DEPOSIT_ID and check exists()
+      const MAX_DEPOSIT_ID = 1000; // Reasonable limit for scanning
       
-      console.log(`📊 [useDeposit] Total NFTs minted: ${totalSupply}, fetching ${count} deposits...`);
+      console.log(`📊 [useDeposit] Scanning deposits from 1 to ${MAX_DEPOSIT_ID}...`);
 
-      // Fetch existing deposits in parallel
-      const promises = Array.from({ length: count }, async (_, i) => {
-        const depositId = BigInt(i + 1);
-        try {
-          return await DataAggregator.getFullDeposit(depositCertificateContract, depositId);
-        } catch {
-          return null;
+      // Fetch existing deposits in parallel batches to avoid RPC limits
+      const BATCH_SIZE = 50;
+      
+      for (let start = 1; start <= MAX_DEPOSIT_ID; start += BATCH_SIZE) {
+        const end = Math.min(start + BATCH_SIZE - 1, MAX_DEPOSIT_ID);
+        
+        const batchPromises = [];
+        for (let i = start; i <= end; i++) {
+          batchPromises.push(
+            (async () => {
+              const depositId = BigInt(i);
+              try {
+                // Check if deposit exists first
+                const exists = await depositCertificateContract.exists(depositId);
+                if (!exists) return null;
+                
+                return await DataAggregator.getFullDeposit(depositCertificateContract, depositId);
+              } catch {
+                return null;
+              }
+            })()
+          );
         }
-      });
-
-      const results = await Promise.all(promises);
-
-      for (const deposit of results) {
-        if (deposit) {
-          deposits.push(deposit);
+        
+        const results = await Promise.all(batchPromises);
+        
+        for (const deposit of results) {
+          if (deposit) {
+            deposits.push(deposit);
+          }
+        }
+        
+        // If we found no deposits in this batch, assume no more deposits exist
+        if (results.every(r => r === null)) {
+          console.log(`📊 [useDeposit] No more deposits found after ID ${end}, stopping scan`);
+          break;
         }
       }
 
       console.log(`✅ [useDeposit] Fetched ${deposits.length} total deposits`);
       return deposits;
     } catch (err: any) {
-      console.error('Error fetching all deposits:', err);
+      console.error('❌ [useDeposit] Error fetching all deposits:', err);
       return [];
     }
   }, [depositCertificateContract]);

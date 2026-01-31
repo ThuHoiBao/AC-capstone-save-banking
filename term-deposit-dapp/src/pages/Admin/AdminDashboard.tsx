@@ -366,7 +366,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* Contract Addresses */}
+            {/* Contract Addresses
             <div className={styles.contractsSection}>
               <h3>Contract Addresses</h3>
               <div className={styles.contractsList}>
@@ -399,7 +399,7 @@ export const Admin: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Recent Deposits */}
             <div className={styles.recentSection}>
