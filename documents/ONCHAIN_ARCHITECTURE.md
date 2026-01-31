@@ -21,55 +21,6 @@
 
 ## 🏗️ HIGH-LEVEL ARCHITECTURE
 
-### System Overview
-
-```mermaid
-graph TB
-    subgraph "External Actors"
-        OWNER[Contract Owner<br/>Admin]
-        USER[User<br/>Depositor]
-    end
-    
-    subgraph "Core Business Logic"
-        SL[SavingLogic<br/>Main Controller]
-    end
-    
-    subgraph "Asset Management"
-        VM[VaultManager<br/>Interest Pool]
-        DV[DepositVault<br/>Principal Storage]
-    end
-    
-    subgraph "Certificate Layer"
-        DC[DepositCertificate<br/>ERC-721 NFT]
-    end
-    
-    subgraph "Token Layer"
-        USDC[MockUSDC<br/>ERC-20]
-    end
-    
-    subgraph "Libraries"
-        IM[InterestMath<br/>Calculations]
-        T[Types<br/>Structs]
-    end
-    
-    OWNER -->|Admin Functions| SL
-    OWNER -->|Fund/Withdraw| VM
-    OWNER -->|Configure| DC
-    
-    USER -->|Deposit/Withdraw| SL
-    USER -->|Owns| DC
-    
-    SL -->|Uses| IM
-    SL -->|Uses| T
-    SL -->|Mints NFT| DC
-    SL -->|Stores Principal| DV
-    SL -->|Requests Interest| VM
-    
-    VM -->|Pays Interest| SL
-    DV -->|Holds| USDC
-    VM -->|Holds| USDC
-    DC -->|Stores| T
-```
 
 ### Architectural Principles
 
@@ -288,37 +239,6 @@ DepositVault → SavingLogic → Split:
 ---
 
 ## 🔐 ACCESS CONTROL MODEL
-
-### Role-Based Access Control
-
-```mermaid
-graph TB
-    subgraph "Roles"
-        OWNER[Owner<br/>Admin Role]
-        USER[User<br/>Public Role]
-        SL[SavingLogic<br/>Contract Role]
-    end
-    
-    subgraph "Permissions"
-        P1[Plan Management]
-        P2[Vault Funding]
-        P3[System Config]
-        P4[Deposit Operations]
-        P5[Withdrawal Operations]
-        P6[NFT Minting]
-        P7[Fund Transfers]
-    end
-    
-    OWNER -->|onlyOwner| P1
-    OWNER -->|onlyOwner| P2
-    OWNER -->|onlyOwner| P3
-    
-    USER -->|public| P4
-    USER -->|ownerOf| P5
-    
-    SL -->|onlySavingLogic| P6
-    SL -->|onlySavingLogic| P7
-```
 
 ### Modifier Hierarchy
 
