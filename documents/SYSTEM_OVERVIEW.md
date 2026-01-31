@@ -82,9 +82,17 @@ A fully decentralized term deposit protocol built on Ethereum that:
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────┐       │
 │  │  Metadata API (Vercel Serverless)                    │       │
-│  │  - NFT Metadata Generation (ERC-721 standard)        │       │
-│  │  - SVG Certificate Generation (on-demand)            │       │
-│  │  - Serves tokenURI() for Etherscan/OpenSea           │       │
+│  │                                                      │       │
+│  │  1. Plan Metadata Management (CRUD)                 │       │
+│  │     - Create/Read/Update/Delete plan metadata       │       │
+│  │     - Store plan images & descriptions              │       │
+│  │     - Endpoints: /api/plans, /api/upload-image      │       │
+│  │                                                      │       │
+│  │  2. NFT Certificate Generation                      │       │
+│  │     - Generate SVG certificates (on-demand)         │       │
+│  │     - ERC-721 metadata JSON formatting              │       │
+│  │     - Serves tokenURI() for Etherscan/OpenSea       │       │
+│  │     - Endpoints: /api/metadata/:depositId           │       │
 │  └──────────────────────────────────────────────────────┘       │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -132,20 +140,27 @@ A fully decentralized term deposit protocol built on Ethereum that:
 
 **Metadata API (Vercel Serverless)**
 
-The metadata API serves two purposes:
+The metadata API serves two main purposes:
 
-1. **Plan Metadata Storage (Off-chain)**
-   - Stores plan descriptions, images, and marketing content
+1. **Plan Metadata Management (CRUD Operations)**
+   - **Create**: Upload plan images and metadata JSON
+   - **Read**: Fetch plan details for frontend display
+   - **Update**: Modify plan descriptions and images
+   - **Delete**: Remove outdated plan metadata
+   - Stores rich content (descriptions, images, marketing materials)
    - Reduces on-chain storage costs (gas optimization)
-   - Provides rich plan information for frontend
-   - Endpoints: `/api/plans/:planId`, `/api/plans`
+   - Endpoints: 
+     - `GET /api/plans` - Get all plans
+     - `GET /api/plans/:planId` - Get single plan
+     - `POST /api/upload-image` - Upload plan image
 
 2. **NFT Certificate Generation (On-demand)**
    - Generates ERC-721 compliant metadata JSON
-   - Creates dynamic SVG certificates with deposit info
-   - Serves `tokenURI()` for Etherscan/OpenSea
-   - Stateless - no database required
-   - Endpoints: `/api/metadata/:depositId`
+   - Creates beautiful SVG certificates with deposit info
+   - Serves `tokenURI()` for Etherscan/OpenSea display
+   - Stateless - no database required (reads from blockchain)
+   - Endpoints: 
+     - `GET /api/metadata/:depositId` - Get NFT metadata
 
 #### 3. Storage (Data Layer)
 
@@ -159,47 +174,6 @@ The metadata API serves two purposes:
 ---
 
 ## 🔐 SECURITY ARCHITECTURE
-
-### Security Layers
-
-```mermaid
-graph TB
-    subgraph "Layer 1: Access Control"
-        AC1[Ownable Pattern]
-        AC2[Role-Based Permissions]
-        AC3[NFT Ownership Verification]
-    end
-    
-    subgraph "Layer 2: State Protection"
-        SP1[Pausable Mechanism]
-        SP2[ReentrancyGuard]
-        SP3[APR Snapshot]
-    end
-    
-    subgraph "Layer 3: Fund Security"
-        FS1[Vault Isolation]
-        FS2[VaultManager Access Control]
-        FS3[SafeERC20 Transfers]
-    end
-    
-    subgraph "Layer 4: Input Validation"
-        IV1[Plan Constraints]
-        IV2[Amount Limits]
-        IV3[Status Checks]
-    end
-    
-    AC1 --> SP1
-    AC2 --> SP2
-    AC3 --> SP3
-    
-    SP1 --> FS1
-    SP2 --> FS2
-    SP3 --> FS3
-    
-    FS1 --> IV1
-    FS2 --> IV2
-    FS3 --> IV3
-```
 
 ### Access Control Matrix
 
